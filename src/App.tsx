@@ -33,15 +33,14 @@ import {
   Route,
   Navigate,
   Outlet,
-} from 'react-router-dom';
-import MainLayout from './components/layouts/MainLayout';
-import ProtectedRoute from './components/auth/ProtectedRoute';
-import AuthPage from './pages/Auth';
+} from "react-router-dom";
+import MainLayout from "./components/layouts/MainLayout";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
+import AuthPage from "./pages/Auth";
 
 // ── Pages ─────────────────────────────────────────────────
 // ✏️ Import your page components here
-import Dashboard from './pages/Dashboard';
-import Settings from './pages/Settings';
+import Dashboard from "./pages/Dashboard";
 // Example: import Users from './pages/Users';
 
 // ─────────────────────────────────────────────────────────
@@ -72,7 +71,6 @@ function App() {
 
             {/* ✏️ Register your pages here */}
             <Route path="/dashboard" element={<Dashboard />} />
-            <Route path="/settings"  element={<Settings />} />
 
             {/* Example of adding a new route:
             <Route path="/users"    element={<Users />} />

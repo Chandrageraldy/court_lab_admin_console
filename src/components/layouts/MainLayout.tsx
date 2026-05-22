@@ -24,19 +24,20 @@
 //      if your table structure is different.
 // ─────────────────────────────────────────────────────────
 
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
-  Settings,
   LogOut,
   User,
   ChevronDown,
   // ✏️ Add or swap icons from lucide-react as needed
-} from 'lucide-react';
-import React, { useEffect, useState, useRef } from 'react';
-import { useAuthService } from '../../hooks/useAuthService';
-import { useProfileService } from '../../hooks/useProfileService';
-import type { Profile } from '../../types/Profile';
+} from "lucide-react";
+import React, { useEffect, useState, useRef } from "react";
+import { useAuthService } from "../../hooks/useAuthService";
+import { useProfileService } from "../../hooks/useProfileService";
+import type { Profile } from "../../types/Profile";
+import courtlabWording from "../../assets/courtlab_wording_only.png";
+import courtlabLogo from "../../assets/courtlab_logo_only.png";
 
 // ─────────────────────────────────────────────────────────
 // ✏️ NAVIGATION CONFIGURATION
@@ -51,10 +52,8 @@ import type { Profile } from '../../types/Profile';
 // ─────────────────────────────────────────────────────────
 const navigationSections = [
   {
-    title: '',
-    items: [
-      { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
-    ],
+    title: "",
+    items: [{ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
   },
   // ✏️ EXAMPLE: Add more sections like this:
   // {
@@ -64,12 +63,6 @@ const navigationSections = [
   //     { name: 'Products', href: '/products', icon: Package },
   //   ],
   // },
-  {
-    title: 'System',
-    items: [
-      { name: 'Settings', href: '/settings', icon: Settings },
-    ],
-  },
 ];
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
@@ -92,12 +85,15 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   // Close the header dropdown when clicking outside of it
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+      if (
+        dropdownRef.current &&
+        !dropdownRef.current.contains(event.target as Node)
+      ) {
         setIsDropdownOpen(false);
       }
     }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   // ─────────────────────────────────────────────────────
@@ -106,11 +102,14 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   // Falls back to formatting the URL path if no match found.
   // ─────────────────────────────────────────────────────
   const getBreadcrumb = () => {
-    const currentPath = location.pathname === '/' ? '/dashboard' : location.pathname;
+    const currentPath =
+      location.pathname === "/" ? "/dashboard" : location.pathname;
 
     for (const section of navigationSections) {
       const exactItem = section.items.find((item) => item.href === currentPath);
-      const matchedItem = exactItem || section.items.find((item) => currentPath.startsWith(item.href));
+      const matchedItem =
+        exactItem ||
+        section.items.find((item) => currentPath.startsWith(item.href));
 
       if (matchedItem) {
         if (section.title) {
@@ -118,59 +117,71 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             <div className="flex items-center text-sm">
               <span className="text-gray-500 font-medium">{section.title}</span>
               <span className="mx-2 text-gray-300 font-normal">/</span>
-              <span className="text-gray-900 font-bold tracking-wide">{matchedItem.name}</span>
+              <span className="text-gray-900 font-bold tracking-wide">
+                {matchedItem.name}
+              </span>
             </div>
           );
         }
         return (
           <div className="flex items-center text-sm">
-            <span className="text-gray-900 font-bold tracking-wide">{matchedItem.name}</span>
+            <span className="text-gray-900 font-bold tracking-wide">
+              {matchedItem.name}
+            </span>
           </div>
         );
       }
     }
 
     // Fallback: format the URL slug as a title
-    const segments = currentPath.split('/').filter(Boolean);
+    const segments = currentPath.split("/").filter(Boolean);
     if (segments.length > 0) {
       const formatted = segments[0]
-        .split('-')
+        .split("-")
         .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
-        .join(' ');
-      return <div className="text-sm text-gray-900 font-bold tracking-wide">{formatted}</div>;
+        .join(" ");
+      return (
+        <div className="text-sm text-gray-900 font-bold tracking-wide">
+          {formatted}
+        </div>
+      );
     }
 
-    return <div className="text-sm text-gray-900 font-bold tracking-wide">Court Lab Admin Console</div>;
+    return (
+      <div className="text-sm text-gray-900 font-bold tracking-wide">
+        Court Lab Admin Console
+      </div>
+    );
   };
 
   return (
     <div className="flex h-screen overflow-hidden">
       {/* ── Sidebar ─────────────────────────────────────── */}
-      <div className="w-64 bg-[#f6f6f6] border-r border-gray-200 flex flex-col shrink-0">
-
-        {/* Logo Area — ✏️ Replace this placeholder with your logo */}
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
+        {/* Logo Area */}
         <div className="h-16 flex items-center gap-2 px-6 shrink-0">
-          {/* ✏️ OPTION A: Use an image */}
-          {/* <img src={yourLogo} alt="Logo" className="h-8 object-contain" /> */}
+          {/* Logo */}
+          <div className="flex items-center gap-3">
+            <img
+              src={courtlabLogo}
+              alt="Court Lab Logo"
+              className="w-8 h-8 object-contain"
+            />
 
-          {/* ✏️ OPTION B: Text logo (default placeholder) */}
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-[#3a40d7] rounded-lg flex items-center justify-center">
-              <span className="text-white font-bold text-sm">A</span>
-            </div>
-            <span className="font-bold text-gray-900 text-sm">
-              {/* ✏️ Change "My Admin" to your app name */}
-              Court Lab
-            </span>
+            <img
+              src={courtlabWording}
+              alt="Court Lab"
+              className="h-3 w-auto object-contain"
+            />
           </div>
         </div>
 
         {/* Navigation */}
         <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
           {navigationSections.map((section) => (
-            <div key={section.title || 'main'}>
+            <div key={section.title || "main"}>
               {section.title && (
-                <h3 className="px-4 text-xs font-bold text-black uppercase tracking-wider mb-2">
+                <h3 className="px-1 text-xs font-bold text-black uppercase tracking-wider mb-2">
                   {section.title}
                 </h3>
               )}
@@ -179,23 +190,23 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                   // Active state: exact match or starts-with for nested routes
                   const isActive =
                     location.pathname === item.href ||
-                    (location.pathname === '/' && item.href === '/dashboard');
+                    (location.pathname === "/" && item.href === "/dashboard");
                   const Icon = item.icon;
                   return (
                     <Link
                       key={item.name}
                       to={item.href}
-                      className={`group flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors duration-150 ${
+                      className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
                         isActive
-                          ? 'bg-[#3a40d7] text-white'        // ✏️ Active: brand color
-                          : 'text-gray-500 hover:bg-gray-200 hover:text-gray-700' // Inactive
+                          ? "bg-[#FFF1ED] text-[#F14B27]" // ✏️ Active: brand color
+                          : "text-gray-500 hover:bg-gray-200 hover:text-gray-700" // Inactive
                       }`}
                     >
                       <Icon
-                        className={`mr-3 flex-shrink-0 h-5 w-5 ${
+                        className={`mr-3 flex-shrink-0 h-4 w-4 ${
                           isActive
-                            ? 'text-white'
-                            : 'text-gray-500 group-hover:text-gray-700'
+                            ? "text-[#F14B27]"
+                            : "text-gray-500 group-hover:text-gray-700"
                         }`}
                       />
                       {item.name}
@@ -209,8 +220,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       </div>
 
       {/* ── Right Panel (Header + Main Content) ─────────── */}
-      <div className="flex-1 flex flex-col min-w-0 bg-[#f6f6f6]">
-
+      <div className="flex-1 flex flex-col min-w-0 bg-[#FAFAFA]">
         {/* Global Header */}
         <header className="h-16 flex items-center justify-between px-8 shrink-0">
           {/* Breadcrumb — auto-generated from route */}
@@ -228,7 +238,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               <div className="hidden sm:flex flex-col items-start mr-1">
                 <span className="text-sm font-bold text-gray-800">
                   {/* Shows first + last name from Profiles table, fallback to "Username" */}
-                  {profile ? `${profile.first_name} ${profile.last_name}` : 'Username'}
+                  {profile
+                    ? `${profile.first_name} ${profile.last_name}`
+                    : "Username"}
                 </span>
                 <span className="text-xs font-medium text-gray-500 truncate max-w-[150px]">
                   {user?.email}
@@ -257,9 +269,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </header>
 
         {/* Main Content — page components render here */}
-        <main className="flex-1 overflow-y-auto p-8">
-          {children}
-        </main>
+        <main className="flex-1 overflow-y-auto p-8">{children}</main>
       </div>
     </div>
   );

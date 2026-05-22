@@ -33,9 +33,9 @@ const DefaultButton = ({
   const baseStyle = 'flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition';
 
   const styles = {
-    primary:   'bg-[#353ee1] text-white hover:bg-[#2c33b5]',    // ✏️ Brand color
+    primary: 'bg-[#F14B27] text-white hover:bg-[#d93f1d]', // ✏️ Brand color
     secondary: 'bg-white text-black border border-gray-300 hover:bg-gray-100',
-    disabled:  'bg-gray-300 text-gray-600 cursor-not-allowed hover:bg-gray-300',
+    disabled: 'bg-gray-300 text-gray-600 cursor-not-allowed hover:bg-gray-300',
   };
 
   const appliedStyle = disabled ? styles.disabled : styles[variant];

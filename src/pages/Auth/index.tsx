@@ -1,19 +1,5 @@
 // ─────────────────────────────────────────────────────────
-// Auth Page — Login Form
-//
-// ✏️ HOW TO CUSTOMIZE:
-//   1. Replace the logo placeholder with your own logo image.
-//   2. Change the "Sign in to your account" heading text.
-//   3. The form uses DefaultTextField and DefaultButton from
-//      src/components/ui — you can restyle those components
-//      to match your brand.
-//
-// ✏️ HOW AUTH WORKS:
-//   - Calls useAuthService().signIn(email, password)
-//   - signIn uses Supabase email+password authentication
-//   - Make sure "Email" provider is enabled in:
-//     Supabase Dashboard → Authentication → Providers → Email
-//   - If already logged in, redirects straight to /dashboard
+// Auth Page — Login Form (Split-panel design)
 // ─────────────────────────────────────────────────────────
 
 import { useState } from 'react';
@@ -22,6 +8,8 @@ import { useAuthService } from '../../hooks/useAuthService';
 import DefaultTextField from '../../components/ui/DefaultTextField';
 import DefaultButton from '../../components/ui/DefaultButton';
 import { Eye, EyeOff } from 'lucide-react';
+import authBg from '../../assets/auth_bg.png';
+import courtlabLogo from '../../assets/courtlab_logo.png';
 
 export default function AuthPage() {
   const { session, isLoading, signIn } = useAuthService();
@@ -31,15 +19,12 @@ export default function AuthPage() {
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
-  // Already authenticated → skip login, go straight to dashboard
   if (!isLoading && session) {
     return <Navigate to="/dashboard" replace />;
   }
 
   const handleLogin = async () => {
     setErrorMsg(null);
-
-    // Basic client-side validation
     if (!email || !password) {
       setErrorMsg('Please enter both email and password.');
       return;
@@ -49,65 +34,92 @@ export default function AuthPage() {
       setErrorMsg('Please enter a valid email address.');
       return;
     }
-
     setSubmitting(true);
     const { error } = await signIn(email, password);
-    if (error) {
-      // Supabase returns descriptive error messages — display them directly
-      setErrorMsg(error.message);
-    }
+    if (error) setErrorMsg(error.message);
     setSubmitting(false);
   };
 
   const isFormEmpty = !email || !password;
 
   return (
-    <div className="min-h-screen bg-[#f6f6f6] flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
+    <div className="min-h-screen flex">
 
-        {/* ─── Logo Area ───────────────────────────────── */}
-        <div className="flex flex-col items-center">
-          {/* ✏️ Replace this placeholder with your logo */}
-          <div className="flex items-center gap-3 mb-2">
-            <div className="w-10 h-10 bg-[#3a40d7] rounded-xl flex items-center justify-center">
-              <span className="text-white font-bold text-lg">A</span>
-            </div>
-            {/* ✏️ Change "My Admin" to your app name */}
-            <span className="text-2xl font-bold text-gray-900">Court Lab</span>
+      {/* ── Left Panel ─────────────────────────────────── */}
+      <div
+        className="hidden lg:flex lg:w-3/5 flex-col justify-between p-12 relative overflow-hidden"
+        style={{
+          backgroundImage: `url(${authBg})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+        }}
+      >
+
+
+        {/* Logo */}
+        <div className="relative z-10">
+          {/* ✏️ Replace with your logo */}
+          <div className="w-12 h-12 flex items-center justify-center">
+            <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" className="w-12 h-12">
+              <line x1="24" y1="4" x2="24" y2="44" stroke="white" strokeWidth="4" strokeLinecap="round" />
+              <line x1="4" y1="24" x2="44" y2="24" stroke="white" strokeWidth="4" strokeLinecap="round" />
+              <line x1="8.7" y1="8.7" x2="39.3" y2="39.3" stroke="white" strokeWidth="4" strokeLinecap="round" />
+              <line x1="39.3" y1="8.7" x2="8.7" y2="39.3" stroke="white" strokeWidth="4" strokeLinecap="round" />
+            </svg>
           </div>
         </div>
 
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          {/* ✏️ Change this heading text if needed */}
-          Sign in to your account
-        </h2>
+        {/* Center copy */}
+        <div className="relative z-10">
+          {/* ✏️ Change headline and subtext */}
+          <h1 className="text-6xl font-extrabold text-white leading-tight mb-6">
+            Court Lab Console
+          </h1>
+          <p className="text-white/80 text-lg leading-relaxed max-w-md">
+            Manage inventory, products, orders, and daily store operations — all in one place.
+          </p>
+        </div>
+
+        {/* Footer */}
+        <div className="relative z-10">
+          <p className="text-white/60 text-sm">© {new Date().getFullYear()} Court Lab. All rights reserved.</p>
+        </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
-        <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-          <div className="space-y-6 flex flex-col gap-2">
+      {/* ── Right Panel ────────────────────────────────── */}
+      <div className="flex-1 flex flex-col justify-center px-8 sm:px-16 lg:px-20 bg-white">
+        <div className="w-full max-w-md mx-auto">
 
-            {/* Email field */}
+          {/* Logo */}
+          <div className="mb-20 flex justify-center">
+            <img
+              src={courtlabLogo}
+              alt="Court Lab Logo"
+              className="h-14 w-auto"
+            />
+          </div>
+
+          <h2 className="text-3xl font-extrabold text-gray-900 mb-1">Welcome Back!</h2>
+          <p className="text-sm text-gray-500 mb-8">
+            Sign in to access the Court Lab admin dashboard. For account access, please contact your administrator.
+          </p>
+
+          <div className="space-y-4">
+            {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email address
-              </label>
               <DefaultTextField
                 type="email"
-                placeholder="you@example.com"
+                placeholder="Email address"
                 value={email}
                 onChange={(val) => setEmail(val)}
               />
             </div>
 
-            {/* Password field with show/hide toggle */}
+            {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700">
-                Password
-              </label>
               <DefaultTextField
                 type={showPassword ? 'text' : 'password'}
-                placeholder="••••••••"
+                placeholder="Password"
                 value={password}
                 onChange={(val) => setPassword(val)}
                 endIcon={
@@ -123,28 +135,28 @@ export default function AuthPage() {
               />
             </div>
 
-            {/* Error message from Supabase or client validation */}
+            {/* Error */}
             {errorMsg && (
               <div className="p-3 rounded-md bg-red-50 border border-red-200">
                 <p className="text-sm text-red-600">{errorMsg}</p>
               </div>
             )}
 
-            {/* Submit button */}
-            <div>
-              <div className="flex w-full [&>button]:w-full [&>button]:justify-center">
-                <DefaultButton
-                  variant="primary"
-                  handleClick={handleLogin}
-                  disabled={submitting || isFormEmpty}
-                >
-                  {submitting ? 'Signing in...' : 'Sign In'}
-                </DefaultButton>
-              </div>
+            {/* Primary CTA */}
+            <div className="flex w-full [&>button]:w-full [&>button]:justify-center pt-1 mb-20">
+              <DefaultButton
+                variant="primary"
+                handleClick={handleLogin}
+                disabled={submitting || isFormEmpty}
+              >
+                {submitting ? 'Signing in...' : 'Login Now'}
+              </DefaultButton>
             </div>
+
           </div>
         </div>
       </div>
+
     </div>
   );
 }
