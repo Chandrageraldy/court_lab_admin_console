@@ -30,6 +30,10 @@ import {
   LogOut,
   User,
   ChevronDown,
+  BadgeDollarSign,
+  Package,
+  AlertTriangle,
+  ReceiptText,
   // ✏️ Add or swap icons from lucide-react as needed
 } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
@@ -52,8 +56,22 @@ import courtlabLogo from "../../assets/courtlab_logo_only.png";
 // ─────────────────────────────────────────────────────────
 const navigationSections = [
   {
-    title: "",
-    items: [{ name: "Dashboard", href: "/dashboard", icon: LayoutDashboard }],
+    title: "Main",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+      { name: "Point of Sale", href: "/point-of-sale", icon: BadgeDollarSign },
+    ],
+  },
+  {
+    title: "Inventory",
+    items: [
+      { name: "Products", href: "/products", icon: Package },
+      { name: "Low Stock", href: "/low-stock", icon: AlertTriangle },
+    ],
+  },
+  {
+    title: "Finance",
+    items: [{ name: "Transactions", href: "/transactions", icon: ReceiptText }],
   },
   // ✏️ EXAMPLE: Add more sections like this:
   // {
@@ -269,7 +287,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
         </header>
 
         {/* Main Content — page components render here */}
-        <main className="flex-1 overflow-y-auto p-8">{children}</main>
+        <main className="flex-1 overflow-y-auto px-8 py-5">{children}</main>
       </div>
     </div>
   );
