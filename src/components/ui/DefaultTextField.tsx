@@ -21,8 +21,8 @@
 //   />
 // ─────────────────────────────────────────────────────────
 
-import { AlertCircle } from 'lucide-react';
-import React from 'react';
+import { AlertCircle } from "lucide-react";
+import React from "react";
 
 interface DefaultTextFieldProps {
   value: string | number;
@@ -41,23 +41,23 @@ interface DefaultTextFieldProps {
 const DefaultTextField: React.FC<DefaultTextFieldProps> = ({
   value,
   onChange,
-  placeholder = '',
-  type = 'text',
+  placeholder = "",
+  type = "text",
   min,
   disabled = false,
   isTextArea = false,
   rows = 2,
-  className = '',
+  className = "",
   error,
   endIcon,
 }) => {
   const baseStyle =
-    'w-full px-4 py-2 rounded-lg text-sm font-medium transition border appearance-none focus:outline-none focus:ring-2';
+    "w-full px-4 py-1.5 rounded-lg text-[13px] font-medium transition border appearance-none focus:outline-none focus:ring-2";
 
   const getInputStyle = () => {
-    if (disabled) return 'bg-gray-100 border-gray-300 cursor-not-allowed';
-    if (error) return 'bg-white text-black border-red-500 focus:ring-red-200';
-    return 'bg-white text-black border-gray-300 focus:ring-blue-200';
+    if (disabled) return "bg-gray-100 border-gray-300 cursor-not-allowed";
+    if (error) return "bg-white text-black border-red-500 focus:ring-red-200";
+    return "bg-white text-black border-gray-300 focus:ring-blue-200";
   };
 
   return (
@@ -80,7 +80,7 @@ const DefaultTextField: React.FC<DefaultTextFieldProps> = ({
             onChange={(e) => onChange(e.target.value)}
             placeholder={placeholder}
             disabled={disabled}
-            className={`${baseStyle} ${getInputStyle()} ${endIcon ? 'pr-10' : ''} ${className}`}
+            className={`${baseStyle} ${getInputStyle()} ${endIcon ? "pr-10" : ""} ${className}`}
           />
           {/* Right-side icon slot (e.g. eye toggle for password fields) */}
           {endIcon && (

@@ -7,7 +7,7 @@
 //   onChange → callback with the new selected value
 //   disabled → grays out and disables the select
 //   error    → shows a red border + error message below
-//   maxWidth → optional CSS max-width string (e.g. "200px")
+//   minWidth → optional CSS min-width string (e.g. "150px")
 //
 // ✏️ USAGE:
 //   <DefaultDropdown
@@ -20,7 +20,7 @@
 //   />
 // ─────────────────────────────────────────────────────────
 
-import { AlertCircle, ChevronDown } from 'lucide-react';
+import { AlertCircle, ChevronDown } from "lucide-react";
 
 interface DropdownProps {
   value: string;
@@ -28,7 +28,7 @@ interface DropdownProps {
   onChange: (value: string) => void;
   disabled?: boolean;
   error?: string;
-  maxWidth?: string;
+  minWidth?: string;
 }
 
 const DefaultDropdown = ({
@@ -37,27 +37,27 @@ const DefaultDropdown = ({
   onChange,
   disabled = false,
   error,
-  maxWidth,
+  minWidth,
 }: DropdownProps) => {
   const baseStyle =
-    'flex items-center justify-between w-full px-4 py-2 rounded-lg text-sm font-medium transition border appearance-none pr-10';
+    "flex items-center justify-between w-full px-4 py-1.5 rounded-lg text-[13px] transition border appearance-none pr-10";
 
   const getDropdownStyle = () => {
     if (disabled)
-      return 'bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed';
+      return "bg-gray-300 text-gray-600 border-gray-300 cursor-not-allowed";
     if (error)
-      return 'bg-white text-black border-red-500 focus:border-red-500 focus:ring-red-200';
-    return 'bg-white text-black border-gray-300 hover:bg-gray-100 cursor-pointer focus:border-blue-500 focus:ring-blue-200';
+      return "bg-white text-black border-red-500 focus:border-red-500 focus:ring-red-200";
+    return "bg-white text-black border-gray-300 hover:bg-gray-100 cursor-pointer focus:border-blue-500 focus:ring-blue-200";
   };
 
   return (
-    <div className="w-full" style={maxWidth ? { maxWidth } : undefined}>
+    <div className="w-fit" style={minWidth ? { minWidth } : undefined}>
       <div className="relative">
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
           disabled={disabled}
-          className={`${baseStyle} ${getDropdownStyle()} w-full`}
+          className={`${baseStyle} ${getDropdownStyle()}`}
         >
           {options.map((opt) => (
             <option key={opt.value} value={opt.value}>

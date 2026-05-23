@@ -41,6 +41,7 @@ import AuthPage from "./pages/Auth";
 // ── Pages ─────────────────────────────────────────────────
 // ✏️ Import your page components here
 import Dashboard from "./pages/Dashboard";
+import Products from "./pages/Products";
 // Example: import Users from './pages/Users';
 
 // ─────────────────────────────────────────────────────────
@@ -71,6 +72,7 @@ function App() {
 
             {/* ✏️ Register your pages here */}
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/products" element={<Products />} />
 
             {/* Example of adding a new route:
             <Route path="/users"    element={<Users />} />

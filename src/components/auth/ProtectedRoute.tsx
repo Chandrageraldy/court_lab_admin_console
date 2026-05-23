@@ -15,8 +15,8 @@
 //     if (profile?.role !== 'admin') return <Navigate to="/403" />;
 // ─────────────────────────────────────────────────────────
 
-import { Navigate, Outlet } from 'react-router-dom';
-import { useAuthService } from '../../hooks/useAuthService';
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuthService } from "../../hooks/useAuthService";
 
 export default function ProtectedRoute() {
   const { session, isLoading } = useAuthService();
@@ -27,7 +27,7 @@ export default function ProtectedRoute() {
     return (
       <div className="fixed inset-0 flex items-center justify-center bg-[#f6f6f6]">
         <div className="flex flex-col items-center gap-4">
-          <div className="w-10 h-10 rounded-full border-4 border-indigo-500/30 border-t-indigo-500 animate-spin" />
+          <div className="w-10 h-10 rounded-full border-4 border-[#d93f1d]/30 border-t-[#d93f1d] animate-spin" />
           <span className="text-sm text-slate-400 tracking-wide">Loading…</span>
         </div>
       </div>
