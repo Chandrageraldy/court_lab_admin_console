@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
 import DefaultButton from "../../components/ui/DefaultButton";
-import { Plus, Trash2 } from "lucide-react";
+import {
+  AlertTriangle,
+  Package,
+  PackageX,
+  Plus,
+  Trash2,
+  X,
+} from "lucide-react";
 import DefaultSearchField from "../../components/ui/DefaultSearchField";
 import { createProductColumns } from "./columns";
 import type { Product } from "../../types/Product";
@@ -17,6 +24,7 @@ import {
 import DefaultDropdown from "../../components/ui/DefaultDropdown";
 import { useProductService } from "../../hooks/useProductService";
 import DefaultPaginator from "../../components/ui/DefaultPaginator";
+import StatsCard from "../../components/ui/StatsCard";
 
 const Products = () => {
   // ===== Loading States =====
@@ -30,7 +38,7 @@ const Products = () => {
   // ===== Table States =====
   const [sorting, setSorting] = useState<SortingState>([]);
   const [rowSelection, setRowSelection] = useState({});
-  const [globalFilter, setGlobalFilter] = useState<unknown>([]);
+  const [globalFilter, setGlobalFilter] = useState("");
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
 
   // ===== Data States =====
@@ -109,6 +117,31 @@ const Products = () => {
 
   const selectedRowCount = table.getSelectedRowModel().rows.length;
 
+  // Calculate low stock and out of stock counts for stats cards
+  const lowStockProducts = products.filter(
+    (p) => p.stock_quantity > 0 && p.stock_quantity <= p.low_stock_threshold,
+  ).length;
+  const outOfStockProducts = products.filter(
+    (p) => p.stock_quantity === 0,
+  ).length;
+
+  // ===== Reset Filters =====
+  const hasActiveFilters =
+    selectedCategoryFilter !== "" ||
+    selectedBrandFilter !== "" ||
+    searchText !== "" ||
+    sorting.length > 0;
+
+  const handleResetFilters = () => {
+    setSelectedCategoryFilter("");
+    setSelectedBrandFilter("");
+    setSearchText("");
+    setGlobalFilter("");
+    setSorting([]);
+    table.resetColumnFilters();
+    table.setGlobalFilter("");
+  };
+
   return (
     <>
       {isLoading ? (
@@ -141,6 +174,27 @@ const Products = () => {
             </div>
           </div>
 
+          <div className="grid grid-cols-3 gap-4 mb-3">
+            <StatsCard
+              title="Total Products"
+              stat={products.length}
+              icon={Package}
+              variant="blue"
+            />
+            <StatsCard
+              title="Low Stock"
+              stat={lowStockProducts}
+              icon={AlertTriangle}
+              variant="yellow"
+            />
+            <StatsCard
+              title="Out of Stock"
+              stat={outOfStockProducts}
+              icon={PackageX}
+              variant="red"
+            />
+          </div>
+
           {/* ── Page Content ────────────────────────────── */}
           <div className="p-5 bg-white rounded-lg shadow">
             <div className="flex items-start justify-between mb-5">
@@ -155,11 +209,11 @@ const Products = () => {
                 {/* Selected Row Count + Bulk Delete */}
                 {selectedRowCount > 0 && (
                   <div className="flex items-center gap-2">
-                    <div className="px-4 py-2 rounded-lg text-sm font-medium bg-[#FFF1ED] text-[#F14B27] whitespace-nowrap">
+                    <div className="px-4 py-1.5 rounded-lg text-sm font-medium bg-[#FFF1ED] text-[#F14B27] whitespace-nowrap">
                       {selectedRowCount} Selected
                     </div>
                     <DefaultButton
-                      variant="secondary"
+                      variant="danger"
                       handleClick={handleBulkDelete}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -219,6 +273,15 @@ const Products = () => {
                     })),
                   ]}
                 />
+                {hasActiveFilters && (
+                  <DefaultButton
+                    variant="ghost"
+                    handleClick={handleResetFilters}
+                  >
+                    <X className="w-3 h-3" />
+                    Reset Filters
+                  </DefaultButton>
+                )}
               </div>
             </div>
             <div className="overflow-x-auto">
