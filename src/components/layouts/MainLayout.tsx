@@ -1,27 +1,5 @@
 // ─────────────────────────────────────────────────────────
 // MainLayout — App Shell (Sidebar + Header + Content Area)
-//
-// ✏️ HOW TO CUSTOMIZE FOR A NEW PROJECT:
-//
-//   1. LOGO:
-//      Replace the logo <div> placeholder in the "Logo Area"
-//      section with your own <img> tag or SVG component.
-//      Example: <img src={yourLogo} alt="My App" className="h-8" />
-//
-//   2. NAVIGATION ITEMS:
-//      Edit the `navigationSections` array below.
-//      Each section has a `title` (group label) and `items`.
-//      Each item needs: { name, href, icon }
-//      Icons come from lucide-react — browse at https://lucide.dev
-//
-//   3. BRAND COLOR:
-//      The active nav item uses bg-[#3a40d7].
-//      Do a find-and-replace for "#3a40d7" to change the brand color.
-//
-//   4. PROFILE DISPLAY:
-//      The header shows the user's first/last name from the
-//      "Profiles" Supabase table. Update Profile type & query
-//      if your table structure is different.
 // ─────────────────────────────────────────────────────────
 
 import { Link, useLocation } from "react-router-dom";
@@ -34,7 +12,8 @@ import {
   Package,
   AlertTriangle,
   ReceiptText,
-  // ✏️ Add or swap icons from lucide-react as needed
+  PanelLeftClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import React, { useEffect, useState, useRef } from "react";
 import { useAuthService } from "../../hooks/useAuthService";
@@ -42,18 +21,8 @@ import { useProfileService } from "../../hooks/useProfileService";
 import type { Profile } from "../../types/Profile";
 import courtlabWording from "../../assets/courtlab_wording_only.png";
 import courtlabLogo from "../../assets/courtlab_logo_only.png";
+import courtlabFull from "../../assets/courtlab_logo.png";
 
-// ─────────────────────────────────────────────────────────
-// ✏️ NAVIGATION CONFIGURATION
-//
-// Add your project's pages here.
-// Structure:
-//   title  → section heading shown above the group (empty = no heading)
-//   items  → array of nav links
-//     name → label shown in the sidebar
-//     href → React Router path (must match a <Route path> in App.tsx)
-//     icon → Lucide icon component
-// ─────────────────────────────────────────────────────────
 const navigationSections = [
   {
     title: "Main",
@@ -73,14 +42,6 @@ const navigationSections = [
     title: "Finance",
     items: [{ name: "Transactions", href: "/transactions", icon: ReceiptText }],
   },
-  // ✏️ EXAMPLE: Add more sections like this:
-  // {
-  //   title: 'Management',
-  //   items: [
-  //     { name: 'Users',    href: '/users',    icon: Users },
-  //     { name: 'Products', href: '/products', icon: Package },
-  //   ],
-  // },
 ];
 
 const MainLayout = ({ children }: { children: React.ReactNode }) => {
@@ -89,9 +50,9 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const { getProfileByUserId } = useProfileService();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch the current user's profile from Supabase on mount / user change
   useEffect(() => {
     if (user?.id) {
       getProfileByUserId(user.id).then((data) => {
@@ -100,7 +61,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     }
   }, [user?.id]);
 
-  // Close the header dropdown when clicking outside of it
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
@@ -114,11 +74,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // ─────────────────────────────────────────────────────
-  // Auto-generates a breadcrumb label from the active route
-  // by matching it against the navigationSections config.
-  // Falls back to formatting the URL path if no match found.
-  // ─────────────────────────────────────────────────────
   const getBreadcrumb = () => {
     const currentPath =
       location.pathname === "/" ? "/dashboard" : location.pathname;
@@ -151,7 +106,6 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
       }
     }
 
-    // Fallback: format the URL slug as a title
     const segments = currentPath.split("/").filter(Boolean);
     if (segments.length > 0) {
       const formatted = segments[0]
@@ -175,37 +129,59 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   return (
     <div className="flex h-screen overflow-hidden">
       {/* ── Sidebar ─────────────────────────────────────── */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col shrink-0">
+      <div
+        className={`relative ${
+          isSidebarCollapsed ? "w-20" : "w-64"
+        } bg-white border-r border-gray-200 flex flex-col shrink-0 transition-all duration-300 px-1`}
+      >
         {/* Logo Area */}
-        <div className="h-16 flex items-center gap-2 px-6 shrink-0">
-          {/* Logo */}
-          <div className="flex items-center gap-3">
+        <div className="h-16 flex items-center justify-center px-3 shrink-0 overflow-hidden">
+          {isSidebarCollapsed ? (
             <img
-              src={courtlabLogo}
+              src={courtlabFull}
               alt="Court Lab Logo"
-              className="w-8 h-8 object-contain"
+              className="w-12 h-12 object-contain"
             />
-
-            <img
-              src={courtlabWording}
-              alt="Court Lab"
-              className="h-3 w-auto object-contain"
-            />
-          </div>
+          ) : (
+            <div className="flex items-center gap-3 w-full px-3">
+              <img
+                src={courtlabLogo}
+                alt="Court Lab Logo"
+                className="w-8 h-8 object-contain shrink-0"
+              />
+              <img
+                src={courtlabWording}
+                alt="Court Lab"
+                className={`h-3 w-auto object-contain transition-opacity duration-150 ${
+                  isSidebarCollapsed ? "opacity-0" : "opacity-100 delay-200"
+                }`}
+              />
+            </div>
+          )}
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 p-4 space-y-6 overflow-y-auto">
+        <nav className="flex-1 px-3 py-4 space-y-6 overflow-y-auto">
           {navigationSections.map((section) => (
             <div key={section.title || "main"}>
+              {/* Section Title */}
               {section.title && (
-                <h3 className="px-1 text-xs font-bold text-black uppercase tracking-wider mb-2">
+                <h3
+                  className={`text-xs font-bold text-black uppercase tracking-wider mb-2 overflow-hidden whitespace-nowrap transition-all duration-150 ${
+                    isSidebarCollapsed
+                      ? "opacity-0 h-0 mb-0 pointer-events-none"
+                      : "opacity-100 h-auto delay-200 px-1"
+                  }`}
+                >
                   {section.title}
                 </h3>
               )}
+              {/* Divider when collapsed */}
+              {section.title && isSidebarCollapsed && (
+                <div className="border-t border-gray-100 mb-2" />
+              )}
               <div className="space-y-1">
                 {section.items.map((item) => {
-                  // Active state: exact match or starts-with for nested routes
                   const isActive =
                     location.pathname === item.href ||
                     (location.pathname === "/" && item.href === "/dashboard");
@@ -214,20 +190,33 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
                     <Link
                       key={item.name}
                       to={item.href}
+                      title={isSidebarCollapsed ? item.name : undefined}
                       className={`group flex items-center px-3 py-2.5 text-sm font-medium rounded-lg transition-colors duration-150 ${
+                        isSidebarCollapsed ? "justify-center" : ""
+                      } ${
                         isActive
-                          ? "bg-[#FFF1ED] text-[#F14B27]" // ✏️ Active: brand color
-                          : "text-gray-500 hover:bg-gray-200 hover:text-gray-700" // Inactive
+                          ? "bg-[#FFF1ED] text-[#F14B27]"
+                          : "text-gray-500 hover:bg-gray-200 hover:text-gray-700"
                       }`}
                     >
                       <Icon
-                        className={`mr-3 flex-shrink-0 h-4 w-4 ${
+                        className={`flex-shrink-0 h-4 w-4 ${
+                          isSidebarCollapsed ? "" : "mr-3"
+                        } ${
                           isActive
                             ? "text-[#F14B27]"
                             : "text-gray-500 group-hover:text-gray-700"
                         }`}
                       />
-                      {item.name}
+                      <span
+                        className={`overflow-hidden whitespace-nowrap transition-all duration-150 ${
+                          isSidebarCollapsed
+                            ? "opacity-0 w-0 pointer-events-none"
+                            : "opacity-100 delay-200"
+                        }`}
+                      >
+                        {item.name}
+                      </span>
                     </Link>
                   );
                 })}
@@ -235,27 +224,37 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
             </div>
           ))}
         </nav>
+
+        {/* Toggle Button — centered on right edge */}
+        <button
+          onClick={() => setIsSidebarCollapsed((prev) => !prev)}
+          className="absolute -right-3 top-1/2 -translate-y-1/2 w-6 h-6 bg-white border border-gray-200 rounded-full shadow-md flex items-center justify-center text-gray-400 hover:text-gray-600 hover:shadow-lg transition-all z-10"
+        >
+          {isSidebarCollapsed ? (
+            <PanelLeftOpen className="w-3 h-3" />
+          ) : (
+            <PanelLeftClose className="w-3 h-3" />
+          )}
+        </button>
       </div>
 
       {/* ── Right Panel (Header + Main Content) ─────────── */}
       <div className="flex-1 flex flex-col min-w-0 bg-[#FAFAFA]">
         {/* Global Header */}
         <header className="h-16 flex items-center justify-between px-8 shrink-0">
-          {/* Breadcrumb — auto-generated from route */}
           <div>{getBreadcrumb()}</div>
 
           {/* User Profile Dropdown */}
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setIsDropdownOpen((prev) => !prev)}
-              className="flex items-center gap-3 hover:bg-gray-50 p-1.5 pr-2 rounded-lg transition-colors outline-none focus:ring-2 focus:ring-[#3a40d7]/50 border border-transparent hover:border-gray-200"
+              className="flex items-center gap-3 hover:bg-gray-50 p-1.5 pr-2 rounded-lg transition-colors outline-none focus:ring-2 focus:ring-[#F14B27]/20 border border-transparent hover:border-gray-200"
             >
               <div className="w-9 h-9 bg-gray-100 rounded-full flex items-center justify-center text-gray-500 shrink-0">
                 <User className="w-5 h-5" />
               </div>
               <div className="hidden sm:flex flex-col items-start mr-1">
                 <span className="text-sm font-bold text-gray-800">
-                  {/* Shows first + last name from Profiles table, fallback to "Username" */}
                   {profile
                     ? `${profile.first_name} ${profile.last_name}`
                     : "Username"}
@@ -267,10 +266,8 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
               <ChevronDown className="w-4 h-4 text-gray-400" />
             </button>
 
-            {/* Dropdown menu */}
             {isDropdownOpen && (
               <div className="absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-xl shadow-lg py-1.5 z-50">
-                {/* ✏️ Add more dropdown items here (e.g. "My Profile", "Change Password") */}
                 <button
                   onClick={() => {
                     setIsDropdownOpen(false);
@@ -286,7 +283,7 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
           </div>
         </header>
 
-        {/* Main Content — page components render here */}
+        {/* Main Content */}
         <main className="flex-1 overflow-y-auto px-8 py-5">{children}</main>
       </div>
     </div>
