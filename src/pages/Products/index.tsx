@@ -26,6 +26,7 @@ import { useProductService } from "../../hooks/useProductService";
 import DefaultPaginator from "../../components/ui/DefaultPaginator";
 import StatsCard from "../../components/ui/StatsCard";
 import { useNavigate } from "react-router";
+import { useSnackbar } from "../../context/SnackbarContext";
 
 const Products = () => {
   const navigate = useNavigate();
@@ -53,6 +54,9 @@ const Products = () => {
   // ===== Service Hooks =====
   const productService = useProductService();
 
+  // ===== Snackbar =====
+  const { showSnackbar } = useSnackbar();
+
   // ===== Data Fetching =====
   const fetchProducts = async () => {
     setIsLoading(true);
@@ -61,6 +65,7 @@ const Products = () => {
       setProducts(response);
     } catch (error) {
       console.error("Error fetching products:", error);
+      showSnackbar("Unable to load products. Please try again.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -170,7 +175,7 @@ const Products = () => {
     <>
       <div>
         {/* ── Page Header ─────────────────────────────── */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-2xl font-bold">Products</h2>
             <p className="text-sm text-gray-500 mt-1">

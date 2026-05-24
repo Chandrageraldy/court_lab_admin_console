@@ -59,7 +59,7 @@ export const createProductColumns = (
           <div className="flex flex-col">
             <span className="font-bold capitalize">{row.original.name}</span>
             <span className="text-xs text-gray-400">
-              {truncate(row.original.description, 40) || "—"}
+              {truncate(row.original.description, 40) || ""}
             </span>
           </div>
         </div>

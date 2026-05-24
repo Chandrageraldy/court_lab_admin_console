@@ -13,12 +13,13 @@ export const useProductService = () => {
         .from("Products")
         .select(
           `
-        *,
-        category:Categories(*),
-        brand:Brands(*)
-      `,
+      *,
+      category:Categories(*),
+      brand:Brands(*)
+    `,
         )
-        .eq("is_deleted", false);
+        .eq("is_deleted", false)
+        .order("created_at", { ascending: false });
       if (error) throw handleSupabaseError(error);
       console.log("Fetched products:", data);
       return data as Product[];
@@ -55,5 +56,44 @@ export const useProductService = () => {
     }
   };
 
-  return { getProducts, getProductById };
+  /**
+   * Create a new product in the "Products" table.
+   * Returns the created Product object, or throws on error.
+   */
+  const createProduct = async (product: Partial<Product>) => {
+    try {
+      const { data, error } = await supabase
+        .from("Products")
+        .insert({ ...product, is_deleted: false })
+        .select()
+        .single();
+      if (error) throw handleSupabaseError(error);
+      return data as Product;
+    } catch (error) {
+      console.error("Error creating product:", error);
+      throw error;
+    }
+  };
+
+  /**
+   * Update an existing product by its ID in the "Products" table.
+   * Returns the updated Product object, or throws on error.
+   */
+  const updateProduct = async (id: number, product: Partial<Product>) => {
+    try {
+      const { data, error } = await supabase
+        .from("Products")
+        .update(product)
+        .eq("product_id", id)
+        .select()
+        .single();
+      if (error) throw handleSupabaseError(error);
+      return data as Product;
+    } catch (error) {
+      console.error("Error updating product:", error);
+      throw error;
+    }
+  };
+
+  return { getProducts, getProductById, createProduct, updateProduct };
 };

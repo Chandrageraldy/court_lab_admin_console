@@ -10,6 +10,9 @@ import { useBrandService } from "../../hooks/useBrandService";
 import { useCategoryService } from "../../hooks/useCategoryService";
 import type { Category } from "../../types/Category";
 import type { Brand } from "../../types/Brand";
+import { supabase } from "../../services/supabase";
+import type { Product } from "../../types/Product";
+import { useSnackbar } from "../../context/SnackbarContext";
 
 const ProductForm = () => {
   const { id } = useParams();
@@ -38,6 +41,7 @@ const ProductForm = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // ===== Data States =====
+  const [originalProduct, setOriginalProduct] = useState<Product | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [brands, setBrands] = useState<Brand[]>([]);
 
@@ -46,12 +50,26 @@ const ProductForm = () => {
   const categoryService = useCategoryService();
   const brandService = useBrandService();
 
+  // ===== Error States =====
+  const [errors, setErrors] = useState({
+    name: "",
+    categoryId: "",
+    brandId: "",
+    sellingPrice: "",
+    stockQuantity: "",
+    lowStockThreshold: "",
+  });
+
+  // ===== Snackbar =====
+  const { showSnackbar } = useSnackbar();
+
   // ===== Data Fetching =====
   const fetchProduct = async () => {
     setIsLoading(true);
     try {
       const response = await productService.getProductById(Number(id));
       if (response) {
+        setOriginalProduct(response);
         setName(response.name);
         setDescription(response.description);
         setSellingPrice(String(response.selling_price));
@@ -69,6 +87,7 @@ const ProductForm = () => {
       }
     } catch (error) {
       console.error("Error fetching product:", error);
+      showSnackbar("Unable to load product data. Please try again.", "error");
     } finally {
       setIsLoading(false);
     }
@@ -84,6 +103,7 @@ const ProductForm = () => {
       setBrands(brandsRes);
     } catch (error) {
       console.error("Error fetching dropdown data:", error);
+      showSnackbar("Failed to load categories and brands.", "error");
     }
   };
 
@@ -97,44 +117,109 @@ const ProductForm = () => {
 
   // ===== Action Handlers =====
   const handleSubmit = async () => {
+    if (!validateForm()) {
+      return;
+    }
+
     setIsSaving(true);
     try {
-      // TODO: wire up create/update service call
-      console.log("Submit", {
+      // ── Resolve image URL ──────────────────────────
+      let finalImageUrl = "";
+
+      if (imageFile) {
+        // Upload file to Supabase Storage
+        const fileExt = imageFile.name.split(".").pop();
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(2)}.${fileExt}`;
+
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("product-images")
+          .upload(fileName, imageFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("product-images")
+          .getPublicUrl(uploadData.path);
+
+        finalImageUrl = urlData.publicUrl;
+      } else if (imageUrl) {
+        finalImageUrl = imageUrl;
+      }
+
+      // ── Check if nothing changed ───────────────────
+      if (isEditing && originalProduct) {
+        const hasChanges =
+          originalProduct.name !== name ||
+          originalProduct.description !== description ||
+          originalProduct.selling_price !== Number(sellingPrice) ||
+          originalProduct.stock_quantity !== Number(stockQuantity) ||
+          originalProduct.low_stock_threshold !== Number(lowStockThreshold) ||
+          originalProduct.category_id !== Number(categoryId) ||
+          originalProduct.brand_id !== Number(brandId) ||
+          originalProduct.image_url !== finalImageUrl ||
+          originalProduct.is_active !== isActive;
+
+        if (!hasChanges) {
+          navigate("/products");
+          return;
+        }
+      }
+
+      // ── Build payload ──────────────────────────────
+      const payload: Partial<Product> = {
         name,
         description,
-        sellingPrice,
-        stockQuantity,
-        lowStockThreshold,
-        categoryId,
-        brandId,
-        imageUrl,
-        isActive,
-      });
+        selling_price: Number(sellingPrice),
+        stock_quantity: Number(stockQuantity),
+        low_stock_threshold: Number(lowStockThreshold),
+        category_id: Number(categoryId),
+        brand_id: Number(brandId),
+        image_url: finalImageUrl,
+        is_active: isActive,
+      };
+
+      // ── Create or Update ───────────────────────────
+      if (isEditing) {
+        await productService.updateProduct(Number(id), payload);
+      } else {
+        await productService.createProduct(payload);
+      }
+      navigate("/products");
+      showSnackbar("Product saved successfully.", "success");
     } catch (error) {
       console.error("Error saving product:", error);
+      showSnackbar("Failed to save product. Please try again.", "error");
     } finally {
       setIsSaving(false);
     }
   };
 
   const handleDuplicate = async () => {
+    if (!originalProduct) return;
+
     setIsDuplicating(true);
+
     try {
-      // TODO: wire up duplicate service call
-      console.log("Duplicate", {
-        name,
-        description,
-        sellingPrice,
-        stockQuantity,
-        lowStockThreshold,
-        categoryId,
-        brandId,
-        imageUrl,
-        isActive,
-      });
+      const payload: Partial<Product> = {
+        name: `${originalProduct.name} Copy`,
+        description: originalProduct.description,
+        selling_price: originalProduct.selling_price,
+        stock_quantity: originalProduct.stock_quantity,
+        low_stock_threshold: originalProduct.low_stock_threshold,
+        category_id: originalProduct.category_id,
+        brand_id: originalProduct.brand_id,
+        image_url: originalProduct.image_url,
+        is_active: originalProduct.is_active,
+      };
+
+      await productService.createProduct(payload);
+
+      showSnackbar("Product duplicated successfully.", "success");
+
+      navigate("/products");
     } catch (error) {
-      console.error("Error saving product:", error);
+      console.error("Error duplicating product:", error);
+      showSnackbar("Failed to duplicate product.", "error");
     } finally {
       setIsDuplicating(false);
     }
@@ -160,6 +245,68 @@ const ProductForm = () => {
   };
 
   // ===== Helper Functions =====
+  const validateForm = () => {
+    const newErrors = {
+      name: "",
+      categoryId: "",
+      brandId: "",
+      sellingPrice: "",
+      stockQuantity: "",
+      lowStockThreshold: "",
+    };
+
+    let isValid = true;
+
+    // Product Name
+    if (!name.trim()) {
+      newErrors.name = "Product name is required";
+      isValid = false;
+    }
+
+    // Category
+    if (!categoryId) {
+      newErrors.categoryId = "Category is required";
+      isValid = false;
+    }
+
+    // Brand
+    if (!brandId) {
+      newErrors.brandId = "Brand is required";
+      isValid = false;
+    }
+
+    // Selling Price
+    if (sellingPrice === "") {
+      newErrors.sellingPrice = "Selling price is required";
+      isValid = false;
+    } else if (Number(sellingPrice) < 0) {
+      newErrors.sellingPrice = "Selling price cannot be negative";
+      isValid = false;
+    }
+
+    // Stock Quantity
+    if (stockQuantity === "") {
+      newErrors.stockQuantity = "Stock quantity is required";
+      isValid = false;
+    } else if (Number(stockQuantity) < 0) {
+      newErrors.stockQuantity = "Stock quantity cannot be negative";
+      isValid = false;
+    }
+
+    // Low Stock Threshold
+    if (lowStockThreshold === "") {
+      newErrors.lowStockThreshold = "Low stock threshold is required";
+      isValid = false;
+    } else if (Number(lowStockThreshold) < 0) {
+      newErrors.lowStockThreshold = "Low stock threshold cannot be negative";
+      isValid = false;
+    }
+
+    setErrors(newErrors);
+
+    return isValid;
+  };
+
   const handleSellingPriceChange = (value: string) => {
     // Remove non-numeric characters
     const raw = value.replace(/\D/g, "");
@@ -203,14 +350,16 @@ const ProductForm = () => {
           </div>
         </div>
         <div className="flex items-center gap-3">
-          <DefaultButton
-            variant="secondary"
-            handleClick={handleDuplicate}
-            disabled={isDuplicating}
-          >
-            <CopyPlus className="w-4 h-4" />
-            {isDuplicating ? "Duplicating..." : "Duplicate"}
-          </DefaultButton>
+          {isEditing && (
+            <DefaultButton
+              variant="secondary"
+              handleClick={handleDuplicate}
+              disabled={isDuplicating}
+            >
+              <CopyPlus className="w-4 h-4" />
+              {isDuplicating ? "Duplicating..." : "Duplicate"}
+            </DefaultButton>
+          )}
           <DefaultButton
             variant="primary"
             handleClick={handleSubmit}
@@ -233,12 +382,13 @@ const ProductForm = () => {
             <div className="flex flex-col gap-4">
               <div>
                 <label className="text-xs font-semibold text-gray-500 mb-1.5 block">
-                  Product Name
+                  Product Name *
                 </label>
                 <DefaultTextField
                   value={name}
                   onChange={setName}
                   placeholder="Enter product name"
+                  error={errors.name}
                 />
               </div>
               <div>
@@ -277,6 +427,7 @@ const ProductForm = () => {
                       value: String(c.category_id),
                     })),
                   ]}
+                  error={errors.categoryId}
                 />
               </div>
               <div>
@@ -294,6 +445,7 @@ const ProductForm = () => {
                       value: String(b.brand_id),
                     })),
                   ]}
+                  error={errors.brandId}
                 />
               </div>
             </div>
@@ -314,6 +466,7 @@ const ProductForm = () => {
                   onChange={handleSellingPriceChange}
                   placeholder="0"
                   type="text"
+                  error={errors.sellingPrice}
                 />
               </div>
               <div>
@@ -326,6 +479,7 @@ const ProductForm = () => {
                   placeholder="0"
                   type="number"
                   min={0}
+                  error={errors.stockQuantity}
                 />
               </div>
               <div>
@@ -338,6 +492,7 @@ const ProductForm = () => {
                   placeholder="0"
                   type="number"
                   min={0}
+                  error={errors.lowStockThreshold}
                 />
               </div>
             </div>
