@@ -1,20 +1,3 @@
-// ─────────────────────────────────────────────────────────
-// useProfileService — Fetches the logged-in user's profile
-//
-// ✏️ HOW IT WORKS:
-//   Queries the "Profiles" Supabase table by user_id.
-//   The result is used in MainLayout to display the user's
-//   name in the top-right header dropdown.
-//
-// ✏️ HOW TO EXTEND:
-//   Add updateProfile, deleteProfile etc. as new async
-//   functions and include them in the return object.
-//
-// ✏️ TABLE NAME:
-//   The table is named "Profiles" (capital P). If you rename
-//   your table, update the .from("Profiles") call below.
-// ─────────────────────────────────────────────────────────
-
 import { supabase } from "../services/supabase";
 import type { Product } from "../types/Product";
 import { handleSupabaseError } from "../utils/ErrorHandlers";
@@ -45,5 +28,32 @@ export const useProductService = () => {
     }
   };
 
-  return { getProducts };
+  /**
+   * Fetch a single product by its ID from the "Products" table.
+   * Includes related category and brand data.
+   * Returns a single Product object, or throws on error.
+   */
+  const getProductById = async (id: number) => {
+    try {
+      const { data, error } = await supabase
+        .from("Products")
+        .select(
+          `
+      *,
+      category:Categories(*),
+      brand:Brands(*)
+    `,
+        )
+        .eq("product_id", id)
+        .eq("is_deleted", false)
+        .single();
+      if (error) throw handleSupabaseError(error);
+      return data as Product;
+    } catch (error) {
+      console.error("Error fetching product:", error);
+      throw error;
+    }
+  };
+
+  return { getProducts, getProductById };
 };

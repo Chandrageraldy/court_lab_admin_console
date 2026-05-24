@@ -155,204 +155,204 @@ const Products = () => {
     table.setGlobalFilter("");
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-10 h-10 rounded-full border-4 border-[#d93f1d]/30 border-t-[#d93f1d] animate-spin" />
+          <span className="text-sm text-slate-400 tracking-wide">Loading…</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <>
-      {isLoading ? (
-        <div className="flex items-center justify-center h-screen">
-          <div className="flex flex-col items-center gap-4">
-            <div className="w-10 h-10 rounded-full border-4 border-[#d93f1d]/30 border-t-[#d93f1d] animate-spin" />
-            <span className="text-sm text-slate-400 tracking-wide">
-              Loading…
-            </span>
+      <div>
+        {/* ── Page Header ─────────────────────────────── */}
+        <div className="flex items-start justify-between mb-6">
+          <div>
+            <h2 className="text-2xl font-bold">Products</h2>
+            <p className="text-sm text-gray-500 mt-1">
+              Manage your product catalogue and stock levels
+            </p>
           </div>
+          <DefaultButton variant="primary" handleClick={handleAdd}>
+            <Plus className="h-4 w-4" />
+            Add Product
+          </DefaultButton>
         </div>
-      ) : (
-        <div>
-          {/* ── Page Header ─────────────────────────────── */}
-          <div className="flex items-start justify-between mb-6">
-            <div>
-              <h2 className="text-2xl font-bold">Products</h2>
-              <p className="text-sm text-gray-500 mt-1">
-                Manage your product catalogue and stock levels
-              </p>
-            </div>
-            <DefaultButton variant="primary" handleClick={handleAdd}>
-              <Plus className="h-4 w-4" />
-              Add Product
-            </DefaultButton>
-          </div>
 
-          {/* ── Stats Cards ──────────────────────────────── */}
-          <div className="grid grid-cols-3 gap-4 mb-4">
-            <StatsCard
-              title="Total Products"
-              stat={products.length}
-              icon={Package}
-              variant="blue"
-            />
-            <StatsCard
-              title="Low Stock"
-              stat={lowStockProducts}
-              icon={AlertTriangle}
-              variant="yellow"
-            />
-            <StatsCard
-              title="Out of Stock"
-              stat={outOfStockProducts}
-              icon={PackageX}
-              variant="red"
-            />
-          </div>
+        {/* ── Stats Cards ──────────────────────────────── */}
+        <div className="grid grid-cols-3 gap-4 mb-4">
+          <StatsCard
+            title="Total Products"
+            stat={products.length}
+            icon={Package}
+            variant="blue"
+          />
+          <StatsCard
+            title="Low Stock"
+            stat={lowStockProducts}
+            icon={AlertTriangle}
+            variant="yellow"
+          />
+          <StatsCard
+            title="Out of Stock"
+            stat={outOfStockProducts}
+            icon={PackageX}
+            variant="red"
+          />
+        </div>
 
-          {/* ── Filters Section ──────────────────────────────── */}
-          <div className="flex items-center justify-between mb-4">
-            {/* Left - Search, Dropdowns, Reset */}
-            <div className="flex items-center gap-2">
-              <DefaultSearchField
-                searchValue={searchText}
-                setSearchValue={(value) => {
-                  setSearchText(value);
-                  if (value === "") {
-                    setGlobalFilter("");
-                    table.setGlobalFilter("");
-                  }
-                }}
-                handleSearch={handleSearch}
-              />
-              <DefaultDropdown
-                value={selectedCategoryFilter}
-                onChange={(value) => {
-                  setSelectedCategoryFilter(value);
+        {/* ── Filters Section ──────────────────────────────── */}
+        <div className="flex items-center justify-between mb-4">
+          {/* Left - Status Toggle */}
+          <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
+            {[
+              { label: "All", value: "all" },
+              { label: "Low Stock", value: "low_stock" },
+              { label: "Out of Stock", value: "out_of_stock" },
+            ].map((option) => (
+              <button
+                key={option.value}
+                onClick={() => {
+                  setSelectedStatusFilter(
+                    option.value as typeof selectedStatusFilter,
+                  );
                   table
-                    .getColumn("category")
-                    ?.setFilterValue(value === "" ? undefined : value);
-                }}
-                options={[
-                  { label: "All Categories", value: "" },
-                  ...Array.from(
-                    new Set(
-                      products
-                        .map((m) => m.category?.name)
-                        .filter((name): name is string => !!name),
-                    ),
-                  ).map((name) => ({ label: name, value: name })),
-                ]}
-              />
-              <DefaultDropdown
-                value={selectedBrandFilter}
-                onChange={(value) => {
-                  setSelectedBrandFilter(value);
-                  table
-                    .getColumn("brand")
-                    ?.setFilterValue(value === "" ? undefined : value);
-                }}
-                options={[
-                  { label: "All Brands", value: "" },
-                  ...Array.from(
-                    new Set(
-                      products
-                        .map((m) => m.brand?.name)
-                        .filter((name): name is string => !!name),
-                    ),
-                  ).map((name) => ({ label: name, value: name })),
-                ]}
-              />
-              {hasActiveFilters && (
-                <DefaultButton variant="ghost" handleClick={handleResetFilters}>
-                  <X className="w-3 h-3" />
-                  Reset
-                </DefaultButton>
-              )}
-            </div>
-            {/* Right - Status Toggle */}
-            <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg border border-gray-200">
-              {[
-                { label: "All", value: "all" },
-                { label: "Low Stock", value: "low_stock" },
-                { label: "Out of Stock", value: "out_of_stock" },
-              ].map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    setSelectedStatusFilter(
-                      option.value as typeof selectedStatusFilter,
+                    .getColumn("stock_quantity")
+                    ?.setFilterValue(
+                      option.value === "all" ? undefined : option.value,
                     );
-                    table
-                      .getColumn("stock_quantity")
-                      ?.setFilterValue(
-                        option.value === "all" ? undefined : option.value,
-                      );
-                  }}
-                  className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
-                    selectedStatusFilter === option.value
-                      ? "bg-[#F14B27] text-white shadow-sm"
-                      : "text-gray-500 hover:text-gray-700"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
-            </div>
+                }}
+                className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
+                  selectedStatusFilter === option.value
+                    ? "bg-[#F14B27] text-white shadow-sm"
+                    : "text-gray-500 hover:text-gray-700"
+                }`}
+              >
+                {option.label}
+              </button>
+            ))}
           </div>
-
-          {/* ── Page Content ─────────────────────────────── */}
-          <div className="p-5 bg-white rounded-lg shadow">
-            {/* Table */}
-            <div className="overflow-x-auto">
-              <div className="rounded-lg overflow-hidden">
-                <table className="min-w-full bg-white">
-                  <thead className="bg-gray-100">
-                    {table.getHeaderGroups().map((headerGroup) => (
-                      <tr key={headerGroup.id}>
-                        {headerGroup.headers.map((header) => (
-                          <th
-                            key={header.id}
-                            className="px-6 py-3 text-left font-bold text-gray-600 text-[13px]"
-                          >
-                            {header.isPlaceholder
-                              ? null
-                              : flexRender(
-                                  header.column.columnDef.header,
-                                  header.getContext(),
-                                )}
-                          </th>
-                        ))}
-                      </tr>
-                    ))}
-                  </thead>
-                  <tbody>
-                    {table.getRowModel().rows.map((row) => (
-                      <tr
-                        key={row.id}
-                        className={`border-b border-gray-200 last:border-b-0 ${
-                          row.getIsSelected()
-                            ? "bg-[#FFF1ED] hover:bg-[#FFF1ED]/80"
-                            : "hover:bg-gray-50"
-                        }`}
-                      >
-                        {row.getVisibleCells().map((cell) => (
-                          <td
-                            key={cell.id}
-                            className="px-6 py-4 text-sm text-gray-700"
-                          >
-                            {flexRender(
-                              cell.column.columnDef.cell,
-                              cell.getContext(),
-                            )}
-                          </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* Paginator */}
-            <DefaultPaginator table={table} pageSizeOptions={[10, 20, 50]} />
+          {/* Right - Search, Dropdowns, Reset */}
+          <div className="flex items-center gap-2">
+            <DefaultSearchField
+              searchValue={searchText}
+              setSearchValue={(value) => {
+                setSearchText(value);
+                if (value === "") {
+                  setGlobalFilter("");
+                  table.setGlobalFilter("");
+                }
+              }}
+              handleSearch={handleSearch}
+            />
+            <DefaultDropdown
+              value={selectedCategoryFilter}
+              onChange={(value) => {
+                setSelectedCategoryFilter(value);
+                table
+                  .getColumn("category")
+                  ?.setFilterValue(value === "" ? undefined : value);
+              }}
+              options={[
+                { label: "All Categories", value: "" },
+                ...Array.from(
+                  new Set(
+                    products
+                      .map((m) => m.category?.name)
+                      .filter((name): name is string => !!name),
+                  ),
+                ).map((name) => ({ label: name, value: name })),
+              ]}
+            />
+            <DefaultDropdown
+              value={selectedBrandFilter}
+              onChange={(value) => {
+                setSelectedBrandFilter(value);
+                table
+                  .getColumn("brand")
+                  ?.setFilterValue(value === "" ? undefined : value);
+              }}
+              options={[
+                { label: "All Brands", value: "" },
+                ...Array.from(
+                  new Set(
+                    products
+                      .map((m) => m.brand?.name)
+                      .filter((name): name is string => !!name),
+                  ),
+                ).map((name) => ({ label: name, value: name })),
+              ]}
+            />
+            {hasActiveFilters && (
+              <DefaultButton variant="ghost" handleClick={handleResetFilters}>
+                <X className="w-3 h-3" />
+                Reset
+              </DefaultButton>
+            )}
           </div>
         </div>
-      )}
+
+        {/* ── Page Content ─────────────────────────────── */}
+        <div className="p-5 bg-white rounded-lg shadow">
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <div className="rounded-lg overflow-hidden">
+              <table className="min-w-full bg-white">
+                <thead className="bg-gray-100">
+                  {table.getHeaderGroups().map((headerGroup) => (
+                    <tr key={headerGroup.id}>
+                      {headerGroup.headers.map((header) => (
+                        <th
+                          key={header.id}
+                          className="px-6 py-3 text-left font-bold text-gray-600 text-[13px]"
+                        >
+                          {header.isPlaceholder
+                            ? null
+                            : flexRender(
+                                header.column.columnDef.header,
+                                header.getContext(),
+                              )}
+                        </th>
+                      ))}
+                    </tr>
+                  ))}
+                </thead>
+                <tbody>
+                  {table.getRowModel().rows.map((row) => (
+                    <tr
+                      key={row.id}
+                      className={`border-b border-gray-200 last:border-b-0 ${
+                        row.getIsSelected()
+                          ? "bg-[#FFF1ED] hover:bg-[#FFF1ED]/80"
+                          : "hover:bg-gray-50"
+                      }`}
+                    >
+                      {row.getVisibleCells().map((cell) => (
+                        <td
+                          key={cell.id}
+                          className="px-6 py-4 text-sm text-gray-700"
+                        >
+                          {flexRender(
+                            cell.column.columnDef.cell,
+                            cell.getContext(),
+                          )}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          {/* Paginator */}
+          <DefaultPaginator table={table} pageSizeOptions={[10, 20, 50]} />
+        </div>
+      </div>
 
       {/* Floating Bulk Action Bar */}
       {selectedRowCount > 0 && (

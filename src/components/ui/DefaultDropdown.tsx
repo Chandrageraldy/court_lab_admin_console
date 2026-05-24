@@ -29,6 +29,7 @@ interface DropdownProps {
   disabled?: boolean;
   error?: string;
   minWidth?: string;
+  fullWidth?: boolean;
 }
 
 const DefaultDropdown = ({
@@ -38,6 +39,7 @@ const DefaultDropdown = ({
   disabled = false,
   error,
   minWidth,
+  fullWidth = false,
 }: DropdownProps) => {
   const baseStyle =
     "flex items-center justify-between w-full px-4 py-1.5 rounded-lg text-[13px] transition border appearance-none pr-10";
@@ -51,7 +53,10 @@ const DefaultDropdown = ({
   };
 
   return (
-    <div className="w-fit" style={minWidth ? { minWidth } : undefined}>
+    <div
+      className={fullWidth ? "w-full" : "w-fit"}
+      style={minWidth ? { minWidth } : undefined}
+    >
       <div className="relative">
         <select
           value={value}

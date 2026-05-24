@@ -1,5 +1,5 @@
 export interface Brand {
-  category_id: number;
+  brand_id: number;
   name: string;
   created_at: string;
 }

@@ -141,6 +141,18 @@ export const createProductColumns = (
     ),
   },
   {
+    accessorKey: "is_active",
+    header: "Status",
+    cell: ({ row }) => {
+      const isActive = row.original.is_active;
+      return isActive ? (
+        <Badge label="Published" variant="green" />
+      ) : (
+        <Badge label="Inactive" variant="gray" />
+      );
+    },
+  },
+  {
     id: "action",
     header: () => <div className="flex justify-center">Actions</div>,
     cell: ({ row }) => (
