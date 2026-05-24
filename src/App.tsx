@@ -42,6 +42,7 @@ import AuthPage from "./pages/Auth";
 // ✏️ Import your page components here
 import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
+import ProductForm from "./pages/Products/ProductForm";
 // Example: import Users from './pages/Users';
 
 // ─────────────────────────────────────────────────────────
@@ -73,6 +74,9 @@ function App() {
             {/* ✏️ Register your pages here */}
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/products" element={<Products />} />
+
+            <Route path="/products/add" element={<ProductForm />} />
+            <Route path="/products/edit/:id" element={<ProductForm />} />
 
             {/* Example of adding a new route:
             <Route path="/users"    element={<Users />} />

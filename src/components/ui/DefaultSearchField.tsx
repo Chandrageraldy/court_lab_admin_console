@@ -34,7 +34,7 @@ const DefaultSearchField = ({
       <div className="relative w-64">
         <input
           type="text"
-          className="w-full bg-white px-4 py-1.5 pr-10 border border-gray-300 outline-none focus:ring-2 focus:ring-blue-500 rounded-lg text-[13px]"
+          className="w-full bg-white px-4 py-1.5 pr-10 border border-gray-300 outline-none focus:ring-2 focus:ring-[#F14B27] focus:border-[#F14B27] rounded-lg text-[13px]"
           placeholder="Search..."
           value={searchValue}
           onChange={(e) => setSearchValue(e.target.value)}

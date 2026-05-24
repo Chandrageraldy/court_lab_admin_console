@@ -10,7 +10,6 @@ import {
   ChevronDown,
   BadgeDollarSign,
   Package,
-  AlertTriangle,
   ReceiptText,
   PanelLeftClose,
   PanelLeftOpen,
@@ -33,10 +32,7 @@ const navigationSections = [
   },
   {
     title: "Inventory",
-    items: [
-      { name: "Products", href: "/products", icon: Package },
-      { name: "Low Stock", href: "/low-stock", icon: AlertTriangle },
-    ],
+    items: [{ name: "Products", href: "/products", icon: Package }],
   },
   {
     title: "Finance",
@@ -77,6 +73,45 @@ const MainLayout = ({ children }: { children: React.ReactNode }) => {
   const getBreadcrumb = () => {
     const currentPath =
       location.pathname === "/" ? "/dashboard" : location.pathname;
+
+    // ── Sub-route overrides ──────────────────────────────
+    if (currentPath === "/products/add") {
+      return (
+        <div className="flex items-center text-sm">
+          <span className="text-gray-500 font-medium">Inventory</span>
+          <span className="mx-2 text-gray-300">/</span>
+          <Link
+            to="/products"
+            className="text-gray-500 font-medium hover:text-gray-900 transition-colors"
+          >
+            Products
+          </Link>
+          <span className="mx-2 text-gray-300">/</span>
+          <span className="text-gray-900 font-bold tracking-wide">
+            Add Product
+          </span>
+        </div>
+      );
+    }
+
+    if (currentPath.startsWith("/products/edit/")) {
+      return (
+        <div className="flex items-center text-sm">
+          <span className="text-gray-500 font-medium">Inventory</span>
+          <span className="mx-2 text-gray-300">/</span>
+          <Link
+            to="/products"
+            className="text-gray-500 font-medium hover:text-gray-900 transition-colors"
+          >
+            Products
+          </Link>
+          <span className="mx-2 text-gray-300">/</span>
+          <span className="text-gray-900 font-bold tracking-wide">
+            Edit Product
+          </span>
+        </div>
+      );
+    }
 
     for (const section of navigationSections) {
       const exactItem = section.items.find((item) => item.href === currentPath);

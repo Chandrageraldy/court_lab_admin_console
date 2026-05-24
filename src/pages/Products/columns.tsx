@@ -87,6 +87,13 @@ export const createProductColumns = (
   },
   {
     accessorKey: "stock_quantity",
+    filterFn: (row, _columnId, filterValue) => {
+      const qty = row.original.stock_quantity;
+      const threshold = row.original.low_stock_threshold;
+      if (filterValue === "out_of_stock") return qty === 0;
+      if (filterValue === "low_stock") return qty > 0 && qty <= threshold;
+      return true;
+    },
     header: ({ column }) => (
       <button
         className="flex items-center gap-1 hover:text-gray-900"
