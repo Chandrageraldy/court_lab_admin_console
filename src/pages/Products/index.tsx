@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import DefaultButton from "../../components/ui/DefaultButton";
 import {
   AlertTriangle,
+  CopyPlus,
   Package,
   PackageX,
   Plus,
@@ -28,6 +29,7 @@ import StatsCard from "../../components/ui/StatsCard";
 import { useNavigate } from "react-router";
 import { useSnackbar } from "../../context/SnackbarContext";
 import AdjustStockDialog from "./AdjustStockDialog";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 const Products = () => {
   const navigate = useNavigate();
@@ -51,6 +53,10 @@ const Products = () => {
 
   // ===== Data States =====
   const [products, setProducts] = useState<Product[]>([]);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [duplicateProduct, setDuplicateProduct] = useState<Product | null>(
+    null,
+  );
 
   // ===== Service Hooks =====
   const productService = useProductService();
@@ -60,6 +66,9 @@ const Products = () => {
     null,
   );
   const [isAdjustStockOpen, setIsAdjustStockOpen] = useState(false);
+  const [deleteConfirmOpen, setDeleteConfirmOpen] = useState(false);
+  const [duplicateConfirmOpen, setDuplicateConfirmOpen] = useState(false);
+  const [bulkDeleteConfirmOpen, setBulkDeleteConfirmOpen] = useState(false);
 
   // ===== Snackbar =====
   const { showSnackbar } = useSnackbar();
@@ -97,8 +106,22 @@ const Products = () => {
     navigate(`/products/edit/${product.product_id}`);
   };
 
-  const handleDelete = async (id: number) => {
-    console.log("Delete product with ID:", id);
+  const handleDelete = (id: number) => {
+    setDeletingId(id);
+    setDeleteConfirmOpen(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (!deletingId) return;
+    try {
+      await productService.deleteProduct(deletingId);
+      setDeleteConfirmOpen(false);
+      fetchProducts();
+      showSnackbar("Product deleted successfully.", "success");
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      showSnackbar("Unable to delete product. Please try again.", "error");
+    }
   };
 
   const handleAdjustStock = (product: Product) => {
@@ -106,7 +129,7 @@ const Products = () => {
     setIsAdjustStockOpen(true);
   };
 
-  const handleAdjustStockConfirm = async (
+  const handleConfirmAdjustStock = async (
     product: Product,
     newQuantity: number,
   ) => {
@@ -129,21 +152,55 @@ const Products = () => {
     }
   };
 
-  const handleBulkDelete = async () => {};
+  const handleBulkDelete = async () => {
+    setBulkDeleteConfirmOpen(true);
+  };
 
-  const handleDuplicate = async (product: Product) => {
+  const handleConfirmBulkDelete = async () => {
+    const ids = table
+      .getSelectedRowModel()
+      .rows.map((r) => r.original.product_id);
+
+    if (!ids.length) return;
+
+    try {
+      await productService.deleteProducts(ids);
+
+      setBulkDeleteConfirmOpen(false);
+      table.resetRowSelection();
+      fetchProducts();
+
+      showSnackbar("Products deleted successfully.", "success");
+    } catch (error) {
+      console.error("Error deleting products:", error);
+      showSnackbar("Unable to delete products. Please try again.", "error");
+    }
+  };
+
+  const handleDuplicate = (product: Product) => {
+    setDuplicateProduct(product);
+    setDuplicateConfirmOpen(true);
+  };
+
+  const handleConfirmDuplicate = async () => {
+    if (!duplicateProduct) return;
+
     try {
       await productService.createProduct({
-        name: `${product.name} (copy)`,
-        description: product.description,
-        selling_price: product.selling_price,
-        stock_quantity: product.stock_quantity,
-        low_stock_threshold: product.low_stock_threshold,
-        category_id: product.category_id,
-        brand_id: product.brand_id,
-        image_url: product.image_url,
-        is_active: product.is_active,
+        name: `${duplicateProduct.name} (copy)`,
+        description: duplicateProduct.description,
+        selling_price: duplicateProduct.selling_price,
+        stock_quantity: duplicateProduct.stock_quantity,
+        low_stock_threshold: duplicateProduct.low_stock_threshold,
+        category_id: duplicateProduct.category_id,
+        brand_id: duplicateProduct.brand_id,
+        image_url: duplicateProduct.image_url,
+        is_active: duplicateProduct.is_active,
       });
+
+      setDuplicateConfirmOpen(false);
+      setDuplicateProduct(null);
+
       fetchProducts();
       showSnackbar("Product duplicated successfully.", "success");
     } catch (error) {
@@ -416,7 +473,6 @@ const Products = () => {
           <DefaultPaginator table={table} pageSizeOptions={[10, 20, 50]} />
         </div>
       </div>
-
       {/* Floating Bulk Action Bar */}
       {selectedRowCount > 0 && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50">
@@ -424,7 +480,7 @@ const Products = () => {
             <span className="text-sm font-medium">
               {selectedRowCount} Selected
             </span>
-            <DefaultButton variant="ghost" handleClick={handleBulkDelete}>
+            <DefaultButton variant="danger" handleClick={handleBulkDelete}>
               <Trash2 className="w-4 h-4" />
               Delete
             </DefaultButton>
@@ -437,14 +493,47 @@ const Products = () => {
           </div>
         </div>
       )}
-
       {/* Adjust Stock Dialog */}
       <AdjustStockDialog
         product={adjustStockProduct}
         open={isAdjustStockOpen}
         onOpenChange={setIsAdjustStockOpen}
-        onConfirm={handleAdjustStockConfirm}
+        onConfirm={handleConfirmAdjustStock}
       />
+      {/* Confirm Delete Dialog */}
+      <ConfirmDialog
+        open={deleteConfirmOpen}
+        onOpenChange={setDeleteConfirmOpen}
+        title="Are you sure you want to delete this product?"
+        description="This action cannot be undone."
+        confirmLabel="Delete"
+        variant="danger"
+        icon={<Trash2 className="w-5 h-5 text-red-500" />}
+        onConfirm={handleConfirmDelete}
+      />
+      {/* Confirm Duplicate Dialog */}
+      <ConfirmDialog
+        open={duplicateConfirmOpen}
+        onOpenChange={setDuplicateConfirmOpen}
+        title="Duplicate this product?"
+        description="A copy of this product will be created."
+        confirmLabel="Duplicate"
+        variant="primary"
+        icon={<CopyPlus className="w-5 h-5 text-[#F14B27]" />}
+        onConfirm={handleConfirmDuplicate}
+      />
+      {/* Confirm Bulk Delete Dialog */}
+      <ConfirmDialog
+        open={bulkDeleteConfirmOpen}
+        onOpenChange={setBulkDeleteConfirmOpen}
+        title="Delete selected products?"
+        description={`You are about to delete ${selectedRowCount} product(s). This action cannot be undone.`}
+        confirmLabel="Delete"
+        variant="danger"
+        icon={<Trash2 className="w-5 h-5 text-red-500" />}
+        onConfirm={handleConfirmBulkDelete}
+      />
+      ;
     </>
   );
 };

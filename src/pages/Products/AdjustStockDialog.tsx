@@ -26,12 +26,18 @@ const AdjustStockDialog = ({
 }: AdjustStockDialogProps) => {
   const [quantity, setQuantity] = useState("");
 
+  // ===== Lifecycle =====
+  useEffect(() => {
+    if (!open) setQuantity("");
+  }, [open]);
+
   if (!product) return null;
 
   const qty = Math.max(0, Number(quantity) || 0);
   const afterAdd = product.stock_quantity + qty;
   const afterRemove = Math.max(0, product.stock_quantity - qty);
 
+  // ===== Action Handlers =====
   const handleQuantityChange = (value: string) => {
     const raw = value.replace(/\D/g, "");
     setQuantity(raw);
@@ -41,11 +47,6 @@ const AdjustStockDialog = ({
     setQuantity("");
     onOpenChange(false);
   };
-
-  // ===== Lifecycle =====
-  useEffect(() => {
-    if (!open) setQuantity("");
-  }, [open]);
 
   return (
     <DefaultDialog

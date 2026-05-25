@@ -95,5 +95,52 @@ export const useProductService = () => {
     }
   };
 
-  return { getProducts, getProductById, createProduct, updateProduct };
+  /**
+   * Soft delete a product by setting is_deleted to true.
+   * Returns the updated Product object, or throws on error.
+   */
+  const deleteProduct = async (id: number) => {
+    try {
+      const { data, error } = await supabase
+        .from("Products")
+        .update({ is_deleted: true })
+        .eq("product_id", id)
+        .select()
+        .single();
+      if (error) throw handleSupabaseError(error);
+      return data as Product;
+    } catch (error) {
+      console.error("Error deleting product:", error);
+      throw error;
+    }
+  };
+
+  /**
+   * Soft delete products by setting is_deleted to true.
+   * Returns list of updated Product object, or throws on error.
+   */
+  const deleteProducts = async (ids: number[]) => {
+    try {
+      const { data, error } = await supabase
+        .from("Products")
+        .update({ is_deleted: true })
+        .in("product_id", ids)
+        .select();
+
+      if (error) throw handleSupabaseError(error);
+      return data as Product[];
+    } catch (error) {
+      console.error("Error bulk deleting products:", error);
+      throw error;
+    }
+  };
+
+  return {
+    getProducts,
+    getProductById,
+    createProduct,
+    updateProduct,
+    deleteProduct,
+    deleteProducts,
+  };
 };
