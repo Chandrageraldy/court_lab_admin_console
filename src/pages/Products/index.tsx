@@ -27,6 +27,7 @@ import DefaultPaginator from "../../components/ui/DefaultPaginator";
 import StatsCard from "../../components/ui/StatsCard";
 import { useNavigate } from "react-router";
 import { useSnackbar } from "../../context/SnackbarContext";
+import AdjustStockDialog from "./AdjustStockDialog";
 
 const Products = () => {
   const navigate = useNavigate();
@@ -53,6 +54,12 @@ const Products = () => {
 
   // ===== Service Hooks =====
   const productService = useProductService();
+
+  // ===== Dialog States =====
+  const [adjustStockProduct, setAdjustStockProduct] = useState<Product | null>(
+    null,
+  );
+  const [isAdjustStockOpen, setIsAdjustStockOpen] = useState(false);
 
   // ===== Snackbar =====
   const { showSnackbar } = useSnackbar();
@@ -95,14 +102,65 @@ const Products = () => {
   };
 
   const handleAdjustStock = (product: Product) => {
-    console.log("Adjust stock for product:", product);
+    setAdjustStockProduct(product);
+    setIsAdjustStockOpen(true);
+  };
+
+  const handleAdjustStockConfirm = async (
+    product: Product,
+    newQuantity: number,
+  ) => {
+    // If quantity didn't change, just close the dialog without making API call
+    if (newQuantity === product.stock_quantity) {
+      setIsAdjustStockOpen(false);
+      return;
+    }
+
+    try {
+      await productService.updateProduct(product.product_id, {
+        stock_quantity: newQuantity,
+      });
+      setIsAdjustStockOpen(false);
+      fetchProducts();
+      showSnackbar("Stock adjusted successfully.", "success");
+    } catch (error) {
+      console.error("Error adjusting stock:", error);
+      showSnackbar("Unable to adjust stock. Please try again.", "error");
+    }
   };
 
   const handleBulkDelete = async () => {};
 
+  const handleDuplicate = async (product: Product) => {
+    try {
+      await productService.createProduct({
+        name: `${product.name} (copy)`,
+        description: product.description,
+        selling_price: product.selling_price,
+        stock_quantity: product.stock_quantity,
+        low_stock_threshold: product.low_stock_threshold,
+        category_id: product.category_id,
+        brand_id: product.brand_id,
+        image_url: product.image_url,
+        is_active: product.is_active,
+      });
+      fetchProducts();
+      showSnackbar("Product duplicated successfully.", "success");
+    } catch (error) {
+      console.error("Error duplicating product:", error);
+      showSnackbar("Unable to duplicate product. Please try again.", "error");
+    }
+  };
+
   // ===== Table Columns =====
   const columns = React.useMemo(
-    () => createProductColumns(handleEdit, handleDelete, handleAdjustStock),
+    () =>
+      createProductColumns(
+        handleEdit,
+        handleDelete,
+        handleAdjustStock,
+        handleDuplicate,
+      ),
     [],
   );
 
@@ -379,6 +437,14 @@ const Products = () => {
           </div>
         </div>
       )}
+
+      {/* Adjust Stock Dialog */}
+      <AdjustStockDialog
+        product={adjustStockProduct}
+        open={isAdjustStockOpen}
+        onOpenChange={setIsAdjustStockOpen}
+        onConfirm={handleAdjustStockConfirm}
+      />
     </>
   );
 };

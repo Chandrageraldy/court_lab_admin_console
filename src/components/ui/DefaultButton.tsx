@@ -20,7 +20,7 @@ import type React from "react";
 interface ButtonProps {
   children: React.ReactNode;
   handleClick: () => void;
-  variant: "primary" | "secondary" | "danger" | "ghost";
+  variant: "primary" | "secondary" | "danger" | "success" | "ghost";
   disabled?: boolean;
 }
 
@@ -31,12 +31,14 @@ const DefaultButton = ({
   disabled = false,
 }: ButtonProps) => {
   const baseStyle =
-    "flex items-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-medium transition";
+    "flex items-center justify-center gap-2 px-3 py-1.5 rounded-lg text-[13px] font-medium transition";
 
   const styles = {
     primary: "bg-[#F14B27] text-white hover:bg-[#d93f1d]",
     secondary: "bg-white text-black border border-gray-300 hover:bg-gray-100",
-    danger: "bg-red-500 text-white hover:bg-red-600 py-2",
+    danger: "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100",
+    success:
+      "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100",
     disabled: "bg-gray-100 text-gray-600 cursor-not-allowed",
     ghost: "bg-gray-100 text-gray-600 hover:bg-gray-200",
   };

@@ -16,6 +16,7 @@ export const createProductColumns = (
   handleEdit: (product: Product) => void,
   handleDelete: (id: number) => void,
   handleAdjustStock: (product: Product) => void,
+  handleDuplicate: (product: Product) => void,
 ): ColumnDef<Product>[] => [
   {
     id: "product",
@@ -161,6 +162,7 @@ export const createProductColumns = (
         handleEdit={handleEdit}
         handleDelete={handleDelete}
         handleAdjustStock={handleAdjustStock}
+        handleDuplicate={handleDuplicate}
       />
     ),
     size: 100,

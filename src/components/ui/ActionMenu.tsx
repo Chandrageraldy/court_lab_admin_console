@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { MoreVertical, Pencil, Trash2, PackagePlus } from "lucide-react";
+import {
+  MoreVertical,
+  Pencil,
+  Trash2,
+  PackagePlus,
+  CopyPlus,
+} from "lucide-react";
 import type { Product } from "../../types/Product";
 
 const ActionMenu = ({
@@ -8,11 +14,13 @@ const ActionMenu = ({
   handleEdit,
   handleDelete,
   handleAdjustStock,
+  handleDuplicate,
 }: {
   product: Product;
   handleEdit: (product: Product) => void;
   handleDelete: (id: number) => void;
   handleAdjustStock: (product: Product) => void;
+  handleDuplicate: (product: Product) => void;
 }) => {
   const [open, setOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
@@ -83,6 +91,16 @@ const ActionMenu = ({
             >
               <PackagePlus className="w-4 h-4 text-green-500" />
               Adjust Stock
+            </button>
+            <button
+              onClick={() => {
+                handleDuplicate(product);
+                setOpen(false);
+              }}
+              className="w-full flex items-center gap-2 px-4 py-2 hover:bg-gray-50 text-gray-700"
+            >
+              <CopyPlus className="w-4 h-4 text-purple-500" />
+              Duplicate
             </button>
             <div className="border-t border-gray-100 my-1" />
             <button

@@ -219,7 +219,7 @@ const ProductForm = () => {
       navigate("/products");
     } catch (error) {
       console.error("Error duplicating product:", error);
-      showSnackbar("Failed to duplicate product.", "error");
+      showSnackbar("Unable to duplicate product. Please try again.", "error");
     } finally {
       setIsDuplicating(false);
     }
