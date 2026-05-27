@@ -20,6 +20,7 @@ interface ConfirmDialogProps {
   icon?: ReactNode;
   onConfirm: () => void;
   isLoading?: boolean;
+  loadingLabel?: string;
 }
 
 const variantStyles: Record<
@@ -50,6 +51,7 @@ const ConfirmDialog = ({
   icon,
   onConfirm,
   isLoading = false,
+  loadingLabel = "Loading...",
 }: ConfirmDialogProps) => {
   const styles = variantStyles[variant];
 
@@ -93,7 +95,7 @@ const ConfirmDialog = ({
             handleClick={onConfirm}
             disabled={isLoading}
           >
-            {isLoading ? "Loading..." : confirmLabel}
+            {isLoading ? loadingLabel : confirmLabel}
           </DefaultButton>
         </div>
       </DialogContent>

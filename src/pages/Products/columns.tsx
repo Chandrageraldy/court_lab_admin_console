@@ -4,7 +4,7 @@ import Checkbox from "../../components/ui/Checkbox";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { formatIDR, truncate } from "../../utils/Helpers";
 import Badge from "../../components/ui/Badge";
-import ActionMenu from "../../components/ui/ActionMenu";
+import ProductActionMenu from "../../components/ui/ProductActionMenu";
 
 const SortIcon = ({ sorted }: { sorted: false | "asc" | "desc" }) => {
   if (sorted === "asc") return <ArrowUp className="w-3 h-3" />;
@@ -155,9 +155,9 @@ export const createProductColumns = (
   },
   {
     id: "action",
-    header: () => <div className="flex justify-center">Actions</div>,
+    header: () => <div className="flex justify-center"></div>,
     cell: ({ row }) => (
-      <ActionMenu
+      <ProductActionMenu
         product={row.original}
         handleEdit={handleEdit}
         handleDelete={handleDelete}

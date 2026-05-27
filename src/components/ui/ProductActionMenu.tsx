@@ -9,7 +9,7 @@ import {
 } from "lucide-react";
 import type { Product } from "../../types/Product";
 
-const ActionMenu = ({
+const ProductActionMenu = ({
   product,
   handleEdit,
   handleDelete,
@@ -120,4 +120,4 @@ const ActionMenu = ({
   );
 };
 
-export default ActionMenu;
+export default ProductActionMenu;

@@ -4,14 +4,13 @@ import {
   Text,
   View,
   StyleSheet,
-  Image,
+  Image as PDFImage,
 } from "@react-pdf/renderer";
 
 import { formatIDR } from "../../utils/Helpers";
 import type { TransactionItemInput } from "../../hooks/useTransactionService";
 import type { Product } from "../../types/Product";
-
-import courtlabLogo from "../../assets/courtlab_logo_grayscale.png";
+import courtlabGrayscale from "../../assets/courtlab_logo_grayscale.png";
 
 const styles = StyleSheet.create({
   page: {
@@ -134,7 +133,7 @@ const Receipt = ({
       <Page size={[226, 600]} style={styles.page}>
         {/* Store Header */}
         <View style={styles.center}>
-          <Image src={courtlabLogo} style={styles.logo} />
+          <PDFImage src={courtlabGrayscale} style={styles.logo} />
 
           <Text style={styles.storeInfo}>Jl. Example Street No. 123</Text>
 

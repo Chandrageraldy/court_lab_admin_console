@@ -16,4 +16,5 @@ export interface Product {
   category: Category;
   brand_id: number;
   brand: Brand;
+  is_service: boolean;
 }

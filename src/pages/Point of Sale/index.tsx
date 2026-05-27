@@ -7,12 +7,12 @@ import { useProductService } from "../../hooks/useProductService";
 import { useTransactionService } from "../../hooks/useTransactionService";
 import { formatIDR } from "../../utils/Helpers";
 import DefaultDropdown from "../../components/ui/DefaultDropdown";
-
 import DefaultButton from "../../components/ui/DefaultButton";
 import Receipt from "../../components/ui/Receipt";
 import DefaultSearchField from "../../components/ui/DefaultSearchField";
 import { useSnackbar } from "../../context/SnackbarContext";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import Badge from "../../components/ui/Badge";
 
 interface CartItem {
   product: Product;
@@ -25,6 +25,7 @@ const PointOfSale = () => {
   // ===== Loading States =====
   const [isLoading, setIsLoading] = useState(false);
   const [isCheckingOut, setIsCheckingOut] = useState(false);
+  const [isPrinting, setIsPrinting] = useState(false);
 
   // ===== Search & Filter States =====
   const [searchText, setSearchText] = useState("");
@@ -146,7 +147,7 @@ const PointOfSale = () => {
   const clearCart = () => {
     setCart([]);
     setOrderNotes("");
-    setPaymentMethod("cash");
+    setPaymentMethod("qris");
   };
 
   // ===== Checkout =====
@@ -165,6 +166,7 @@ const PointOfSale = () => {
           quantity: i.quantity,
           unit_price: i.unit_price,
           notes: i.notes,
+          is_service: i.product.is_service,
         })),
       });
 
@@ -189,22 +191,39 @@ const PointOfSale = () => {
 
   // ===== Print Receipt =====
   const handlePrintReceipt = async (transaction: any, items: CartItem[]) => {
-    const blob = await pdf(
-      <Receipt
-        transactionId={transaction.transaction_id}
-        items={items.map((i) => ({
-          ...i,
-          product_id: i.product.product_id,
-        }))}
-        totalAmount={transaction.total_amount}
-        paymentMethod={transaction.payment_method}
-        notes={transaction.notes}
-        createdAt={transaction.created_at}
-      />,
-    ).toBlob();
+    setIsPrinting(true);
 
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
+    try {
+      const blob = await pdf(
+        <Receipt
+          transactionId={transaction.transaction_id}
+          items={items.map((i) => ({
+            ...i,
+            product_id: i.product.product_id,
+          }))}
+          totalAmount={transaction.total_amount}
+          paymentMethod={transaction.payment_method}
+          notes={transaction.notes}
+          createdAt={transaction.created_at}
+        />,
+      ).toBlob();
+
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.target = "_blank";
+      link.rel = "noopener noreferrer";
+
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      // Optional cleanup
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+    } finally {
+      setIsPrinting(false);
+    }
   };
 
   // ===== Totals =====
@@ -370,24 +389,31 @@ const PointOfSale = () => {
                         <p className="text-xs font-bold text-gray-800 capitalize truncate">
                           {product.name}
                         </p>
-                        {/* Brand & Category */}
-                        <div className="flex items-center gap-1 mt-0.5 flex-wrap">
-                          {product.brand?.name && (
-                            <span className="text-[10px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded-full font-medium">
-                              {product.brand.name}
-                            </span>
+                        {/* Brand, Category & Service */}
+                        <div className="flex items-center gap-1 mt-1 flex-wrap">
+                          {product.is_service && (
+                            <Badge label="Service" variant="green" />
                           )}
+
+                          {product.brand?.name && (
+                            <Badge label={product.brand.name} variant="blue" />
+                          )}
+
                           {product.category?.name && (
-                            <span className="text-[10px] bg-gray-100 text-gray-500 px-1.5 py-0.5 rounded-full font-medium">
-                              {product.category.name}
-                            </span>
+                            <Badge
+                              label={product.category.name}
+                              variant="gray"
+                            />
                           )}
                         </div>
                         <p className="text-xs text-[#F14B27] font-semibold mt-1.5">
                           {formatIDR(product.selling_price)}
                         </p>
                         <p className="text-[10px] text-gray-400 mt-0.5">
-                          Stock: {product.stock_quantity}
+                          Stock:{" "}
+                          {product.is_service
+                            ? "Unlimited"
+                            : product.stock_quantity}
                         </p>
 
                         {/* In cart badge */}
@@ -629,6 +655,8 @@ const PointOfSale = () => {
           setPrintConfirmOpen(false);
           setPendingReceipt(null);
         }}
+        isLoading={isPrinting}
+        loadingLabel="Printing..."
       />
     </>
   );

@@ -44,6 +44,7 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import ProductForm from "./pages/Products/ProductForm";
 import PointOfSale from "./pages/Point of Sale";
+import Transactions from "./pages/Transactions";
 // Example: import Users from './pages/Users';
 
 // ─────────────────────────────────────────────────────────
@@ -79,6 +80,7 @@ function App() {
             <Route path="/products/add" element={<ProductForm />} />
             <Route path="/products/edit/:id" element={<ProductForm />} />
             <Route path="/point-of-sale" element={<PointOfSale />} />
+            <Route path="/transactions" element={<Transactions />} />
 
             {/* Example of adding a new route:
             <Route path="/users"    element={<Users />} />

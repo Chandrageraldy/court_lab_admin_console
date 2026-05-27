@@ -1,4 +1,5 @@
 import { supabase } from "../services/supabase";
+import type { Transaction } from "../types/Transaction";
 import { handleSupabaseError } from "../utils/ErrorHandlers";
 
 export interface TransactionItemInput {
@@ -6,6 +7,7 @@ export interface TransactionItemInput {
   quantity: number;
   unit_price: number;
   notes?: string;
+  is_service?: boolean;
 }
 
 export interface TransactionInput {
@@ -16,6 +18,25 @@ export interface TransactionInput {
 }
 
 export const useTransactionService = () => {
+  /**
+   * Fetch all non-deleted transactions from the "Transactions" table.
+   * Returns an array of Transaction objects, or null on error.
+   */
+  const getTransactions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("Transactions")
+        .select("*")
+        .order("created_at", { ascending: true });
+      if (error) throw handleSupabaseError(error);
+      console.log("Fetched transactions:", data);
+      return data as Transaction[];
+    } catch (error) {
+      console.error("Error fetching transactions:", error);
+      throw error;
+    }
+  };
+
   /**
    * Create a new transaction with its items.
    * Also deducts stock from the Products table.
@@ -53,6 +74,8 @@ export const useTransactionService = () => {
 
       // 3. Deduct stock for each item
       for (const item of input.items) {
+        if (item.is_service) continue; // Skip stock deduction for services
+
         const { data: product, error: fetchError } = await supabase
           .from("Products")
           .select("stock_quantity")
@@ -76,5 +99,5 @@ export const useTransactionService = () => {
     }
   };
 
-  return { createTransaction };
+  return { getTransactions, createTransaction };
 };

@@ -76,9 +76,15 @@ const Products = () => {
   // ===== Data Fetching =====
   const fetchProducts = async () => {
     setIsLoading(true);
+
     try {
       const response = await productService.getProducts();
-      setProducts(response);
+
+      const filteredProducts = response.filter(
+        (product) => product.is_service === false,
+      );
+
+      setProducts(filteredProducts);
     } catch (error) {
       console.error("Error fetching products:", error);
       showSnackbar("Unable to load products. Please try again.", "error");
@@ -417,7 +423,7 @@ const Products = () => {
         </div>
 
         {/* ── Page Content ─────────────────────────────── */}
-        <div className="p-5 bg-white rounded-lg shadow">
+        <div className="p-2 bg-white rounded-lg shadow">
           {/* Table */}
           <div className="overflow-x-auto">
             <div className="rounded-lg overflow-hidden">
