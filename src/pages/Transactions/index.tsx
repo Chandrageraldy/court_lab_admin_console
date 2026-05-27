@@ -18,10 +18,16 @@ import DefaultButton from "../../components/ui/DefaultButton";
 import { Ban, X } from "lucide-react";
 import DefaultSearchField from "../../components/ui/DefaultSearchField";
 import DefaultDropdown from "../../components/ui/DefaultDropdown";
+import { pdf } from "@react-pdf/renderer";
+import Receipt from "../../components/ui/Receipt";
+import TransactionDetailDialog from "./TransactionDetailDialog";
+import ConfirmDialog from "../../components/ui/ConfirmDialog";
 
 const Transactions = () => {
   // ===== Loading States =====
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingItems, setIsLoadingItems] = useState(false);
+  const [isVoiding, setIsVoiding] = useState(false);
 
   // ===== Search & Filter States =====
   const [searchText, setSearchText] = useState("");
@@ -39,11 +45,16 @@ const Transactions = () => {
 
   // ===== Data States =====
   const [transactions, setTransactions] = useState<Transaction[]>([]);
+  const [selectedTransaction, setSelectedTransaction] =
+    useState<Transaction | null>(null);
+  const [transactionItems, setTransactionItems] = useState<any[]>([]);
 
   // ===== Service Hooks =====
   const transactionService = useTransactionService();
 
   // ===== Dialog States =====
+  const [viewOpen, setViewOpen] = useState(false);
+  const [voidConfirmOpen, setVoidConfirmOpen] = useState(false);
 
   // ===== Snackbar =====
   const { showSnackbar } = useSnackbar();
@@ -73,11 +84,74 @@ const Transactions = () => {
     table.setGlobalFilter(String(searchText));
   };
 
-  const handleView = () => {};
+  const handleView = async (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setViewOpen(true);
+    setIsLoadingItems(true);
+    try {
+      const items = await transactionService.getTransactionItems(
+        transaction.transaction_id,
+      );
+      setTransactionItems(items);
+    } catch (error) {
+      console.error("Error fetching transaction items:", error);
+      showSnackbar("Unable to load transaction items.", "error");
+    } finally {
+      setIsLoadingItems(false);
+    }
+  };
 
-  const handleVoid = () => {};
+  const handleVoid = (transaction: Transaction) => {
+    setSelectedTransaction(transaction);
+    setVoidConfirmOpen(true);
+  };
 
-  const handlePrint = () => {};
+  const handleConfirmVoid = async () => {
+    if (!selectedTransaction) return;
+    setIsVoiding(true);
+    try {
+      await transactionService.voidTransaction(
+        selectedTransaction.transaction_id,
+      );
+      setVoidConfirmOpen(false);
+      fetchTransactions();
+      showSnackbar("Transaction voided successfully.", "success");
+    } catch (error) {
+      console.error("Error voiding transaction:", error);
+      showSnackbar("Unable to void transaction. Please try again.", "error");
+    } finally {
+      setIsVoiding(false);
+    }
+  };
+
+  const handlePrint = async (transaction: Transaction) => {
+    setIsLoadingItems(true);
+    try {
+      const items = await transactionService.getTransactionItems(
+        transaction.transaction_id,
+      );
+      const blob = await pdf(
+        <Receipt
+          transactionId={transaction.transaction_id}
+          items={items.map((i: any) => ({
+            ...i,
+            product_id: i.product_id,
+          }))}
+          totalAmount={transaction.total_amount}
+          paymentMethod={transaction.payment_method}
+          notes={transaction.notes ?? undefined}
+          createdAt={transaction.created_at}
+        />,
+      ).toBlob();
+      const url = URL.createObjectURL(blob);
+      window.open(url, "_blank");
+    } catch (error) {
+      console.error("Error printing receipt:", error);
+      showSnackbar("Unable to print receipt. Please try again.", "error");
+    } finally {
+      setIsLoadingItems(false);
+    }
+  };
 
   const handleBulkVoid = () => {};
 
@@ -265,7 +339,8 @@ const Transactions = () => {
                   {table.getRowModel().rows.map((row) => (
                     <tr
                       key={row.id}
-                      className={`border-b border-gray-200 last:border-b-0 ${
+                      onClick={() => handleView(row.original)}
+                      className={`border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors ${
                         row.getIsSelected()
                           ? "bg-[#FFF1ED] hover:bg-[#FFF1ED]/80"
                           : "hover:bg-gray-50"
@@ -301,10 +376,18 @@ const Transactions = () => {
             <span className="text-sm font-medium">
               {selectedRowCount} Selected
             </span>
-            <DefaultButton variant="danger" handleClick={handleBulkVoid}>
+
+            <DefaultButton
+              variant="danger"
+              handleClick={handleBulkVoid}
+              disabled={table
+                .getSelectedRowModel()
+                .rows.some((row) => row.original.is_voided)}
+            >
               <Ban className="w-4 h-4" />
               Void
             </DefaultButton>
+
             <button
               onClick={() => table.resetRowSelection()}
               className="text-gray-400 hover:text-gray-600 transition-colors"
@@ -314,6 +397,27 @@ const Transactions = () => {
           </div>
         </div>
       )}
+      {/* View Dialog */}
+      <TransactionDetailDialog
+        open={viewOpen}
+        onOpenChange={setViewOpen}
+        transaction={selectedTransaction}
+        items={transactionItems}
+        isLoading={isLoadingItems}
+      />
+
+      {/* Void Confirm Dialog */}
+      <ConfirmDialog
+        open={voidConfirmOpen}
+        onOpenChange={setVoidConfirmOpen}
+        title="Void Transaction"
+        description={`This will void #TXN-${selectedTransaction?.transaction_id} and revert all stock. This cannot be undone.`}
+        confirmLabel="Void"
+        variant="danger"
+        icon={<Ban className="w-5 h-5 text-red-500" />}
+        onConfirm={handleConfirmVoid}
+        isLoading={isVoiding}
+      />
     </>
   );
 };

@@ -286,7 +286,12 @@ const PointOfSale = () => {
             <div>
               <h2 className="text-2xl font-bold">Point of Sale</h2>
               <p className="text-sm text-gray-500 mt-1">
-                {products.length} products available
+                {products.length} products available ·{" "}
+                {
+                  products.filter((p) => p.stock_quantity <= 0 && !p.is_service)
+                    .length
+                }{" "}
+                out of stock
               </p>
             </div>
           </div>

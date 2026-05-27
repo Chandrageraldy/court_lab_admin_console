@@ -49,7 +49,10 @@ export const createTransactionColumns = (
     ),
 
     cell: ({ row }) => (
-      <div className="flex items-center gap-5">
+      <div
+        className="flex items-center gap-5"
+        onClick={(e) => e.stopPropagation()}
+      >
         <Checkbox
           checked={row.getIsSelected()}
           onCheckedChange={(value: boolean) => row.toggleSelected(value)}
@@ -139,7 +142,7 @@ export const createTransactionColumns = (
     ),
 
     cell: ({ row }) => (
-      <span className="font-semibold text-gray-800">
+      <span className="font-semibold text-[#F14B27]">
         {formatIDR(row.original.total_amount)}
       </span>
     ),
@@ -207,12 +210,14 @@ export const createTransactionColumns = (
     header: () => <div className="flex justify-center"></div>,
 
     cell: ({ row }) => (
-      <TransactionActionMenu
-        transaction={row.original}
-        handleVoid={handleVoid}
-        handleView={handleView}
-        handlePrint={handlePrint}
-      />
+      <div onClick={(e) => e.stopPropagation()}>
+        <TransactionActionMenu
+          transaction={row.original}
+          handleVoid={handleVoid}
+          handleView={handleView}
+          handlePrint={handlePrint}
+        />
+      </div>
     ),
 
     size: 100,

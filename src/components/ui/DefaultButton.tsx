@@ -39,7 +39,8 @@ const DefaultButton = ({
     danger: "bg-red-50 text-red-600 border border-red-200 hover:bg-red-100",
     success:
       "bg-green-50 text-green-700 border border-green-200 hover:bg-green-100",
-    disabled: "bg-gray-100 text-gray-600 cursor-not-allowed",
+    disabled:
+      "bg-gray-100 text-gray-600 cursor-not-allowed border border-gray-100",
     ghost: "bg-gray-100 text-gray-600 hover:bg-gray-200",
   };
 

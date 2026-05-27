@@ -38,6 +38,25 @@ export const useTransactionService = () => {
   };
 
   /**
+   * Fetch all items for a specific transaction.
+   * Includes related product data.
+   * Returns an array of TransactionItem objects, or throws on error.
+   */
+  const getTransactionItems = async (transactionId: number) => {
+    try {
+      const { data, error } = await supabase
+        .from("TransactionItems")
+        .select(`*, product:Products(*)`)
+        .eq("transaction_id", transactionId);
+      if (error) throw handleSupabaseError(error);
+      return data;
+    } catch (error) {
+      console.error("Error fetching transaction items:", error);
+      throw error;
+    }
+  };
+
+  /**
    * Create a new transaction with its items.
    * Also deducts stock from the Products table.
    */
@@ -99,5 +118,56 @@ export const useTransactionService = () => {
     }
   };
 
-  return { getTransactions, createTransaction };
+  /**
+   * Void a transaction by setting is_voided to true.
+   * Also reverts stock for all non-service items.
+   * Returns the updated Transaction object, or throws on error.
+   */
+  const voidTransaction = async (transactionId: number) => {
+    try {
+      // 1. Fetch transaction items
+      const items = await getTransactionItems(transactionId);
+
+      // 2. Revert stock for each non-service item
+      for (const item of items) {
+        if (item.product?.is_service) continue;
+
+        const { data: product, error: fetchError } = await supabase
+          .from("Products")
+          .select("stock_quantity")
+          .eq("product_id", item.product_id)
+          .single();
+
+        if (fetchError) throw handleSupabaseError(fetchError);
+
+        const { error: stockError } = await supabase
+          .from("Products")
+          .update({ stock_quantity: product.stock_quantity + item.quantity })
+          .eq("product_id", item.product_id);
+
+        if (stockError) throw handleSupabaseError(stockError);
+      }
+
+      // 3. Mark transaction as voided
+      const { data, error } = await supabase
+        .from("Transactions")
+        .update({ is_voided: true })
+        .eq("transaction_id", transactionId)
+        .select()
+        .single();
+
+      if (error) throw handleSupabaseError(error);
+      return data as Transaction;
+    } catch (error) {
+      console.error("Error voiding transaction:", error);
+      throw error;
+    }
+  };
+
+  return {
+    getTransactions,
+    getTransactionItems,
+    createTransaction,
+    voidTransaction,
+  };
 };
