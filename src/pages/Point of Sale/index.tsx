@@ -286,12 +286,9 @@ const PointOfSale = () => {
             <div>
               <h2 className="text-2xl font-bold">Point of Sale</h2>
               <p className="text-sm text-gray-500 mt-1">
-                {products.length} products available ·{" "}
-                {
-                  products.filter((p) => p.stock_quantity <= 0 && !p.is_service)
-                    .length
-                }{" "}
-                out of stock
+                {products.length} total ·{" "}
+                {products.filter((p) => p.stock_quantity > 0 || p.is_service).length} available ·{" "}
+                {products.filter((p) => p.stock_quantity <= 0 && !p.is_service).length} out of stock
               </p>
             </div>
           </div>
@@ -302,7 +299,7 @@ const PointOfSale = () => {
               <DefaultSearchField
                 searchValue={searchText}
                 setSearchValue={setSearchText}
-                handleSearch={() => {}}
+                handleSearch={() => { }}
                 fullWidth
                 placeholder="Search by name, brand, category..."
               />
@@ -357,15 +354,13 @@ const PointOfSale = () => {
                         key={product.product_id}
                         onClick={() => !isOutOfStock && addToCart(product)}
                         disabled={isOutOfStock}
-                        className={`relative bg-white rounded-lg border transition-all text-left p-3 ${
-                          isOutOfStock
-                            ? "opacity-60 cursor-not-allowed"
-                            : "hover:shadow-md hover:border-[#F14B27]/30 active:scale-[0.98]"
-                        } ${
-                          inCart
+                        className={`relative bg-white rounded-lg border transition-all text-left p-3 ${isOutOfStock
+                          ? "opacity-60 cursor-not-allowed"
+                          : "hover:shadow-md hover:border-[#F14B27]/30 active:scale-[0.98]"
+                          } ${inCart
                             ? "border-[#F14B27]/40 shadow-sm"
                             : "border-gray-100"
-                        }`}
+                          }`}
                       >
                         {/* Image */}
                         <div className="relative w-full h-28 rounded-lg overflow-hidden bg-gray-50 mb-3">

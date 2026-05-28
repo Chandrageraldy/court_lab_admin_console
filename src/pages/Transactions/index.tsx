@@ -22,6 +22,7 @@ import { pdf } from "@react-pdf/renderer";
 import Receipt from "../../components/ui/Receipt";
 import TransactionDetailDialog from "./TransactionDetailDialog";
 import ConfirmDialog from "../../components/ui/ConfirmDialog";
+import DefaultDateRangePicker from "../../components/ui/DefaultDateRangePicker";
 
 const Transactions = () => {
   // ===== Loading States =====
@@ -36,6 +37,8 @@ const Transactions = () => {
   const [selectedStatusFilter, setSelectedStatusFilter] = useState<
     "all" | "completed" | "voided"
   >("all");
+  const [startDate, setStartDate] = useState("");
+  const [endDate, setEndDate] = useState("");
 
   // ===== Table States =====
   const [sorting, setSorting] = useState<SortingState>([]);
@@ -153,7 +156,23 @@ const Transactions = () => {
     }
   };
 
-  const handleBulkVoid = () => {};
+  const handleBulkVoid = () => { };
+
+  // ===== Date Filtered Transactions =====
+  const dateFilteredTransactions = React.useMemo(() => {
+    return transactions.filter((t) => {
+      if (!startDate && !endDate) return true;
+
+      const date = new Date(t.created_at);
+      const start = startDate ? new Date(startDate) : null;
+      const end = endDate ? new Date(endDate + "T23:59:59") : null;
+
+      if (start && date < start) return false;
+      if (end && date > end) return false;
+
+      return true;
+    });
+  }, [transactions, startDate, endDate]);
 
   // ===== Table Columns =====
   const columns = React.useMemo(
@@ -162,7 +181,7 @@ const Transactions = () => {
   );
 
   const table = useReactTable({
-    data: transactions,
+    data: dateFilteredTransactions,
     columns,
     enableMultiSort: false,
     onSortingChange: setSorting,
@@ -191,7 +210,9 @@ const Transactions = () => {
     selectedPaymentMethodFilter !== "" ||
     searchText !== "" ||
     sorting.length > 0 ||
-    selectedStatusFilter !== "all";
+    selectedStatusFilter !== "all" ||
+    startDate !== "" ||
+    endDate !== "";
 
   const handleResetFilters = () => {
     setSelectedPaymentMethodFilter("");
@@ -199,9 +220,10 @@ const Transactions = () => {
     setSearchText("");
     setGlobalFilter("");
     setSorting([]);
-
     table.resetColumnFilters();
     table.setGlobalFilter("");
+    setStartDate("");
+    setEndDate("");
   };
 
   const selectedRowCount = table.getSelectedRowModel().rows.length;
@@ -253,11 +275,10 @@ const Transactions = () => {
                         : option.value === "voided",
                     );
                 }}
-                className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all ${
-                  selectedStatusFilter === option.value
-                    ? "bg-[#F14B27] text-white shadow-sm"
-                    : "text-gray-500 hover:text-gray-700"
-                }`}
+                className={`px-4 py-1.5 rounded-md text-xs font-medium transition-all ${selectedStatusFilter === option.value
+                  ? "bg-[#F14B27] text-white shadow-sm"
+                  : "text-gray-500 hover:text-gray-700"
+                  }`}
               >
                 {option.label}
               </button>
@@ -276,6 +297,14 @@ const Transactions = () => {
               }}
               handleSearch={handleSearch}
             />
+
+            <DefaultDateRangePicker
+              startDate={startDate}
+              endDate={endDate}
+              onStartDateChange={setStartDate}
+              onEndDateChange={setEndDate}
+            />
+
             <DefaultDropdown
               value={selectedPaymentMethodFilter}
               onChange={(value) => {
@@ -327,9 +356,9 @@ const Transactions = () => {
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext(),
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext(),
+                            )}
                         </th>
                       ))}
                     </tr>
@@ -340,11 +369,10 @@ const Transactions = () => {
                     <tr
                       key={row.id}
                       onClick={() => handleView(row.original)}
-                      className={`border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors ${
-                        row.getIsSelected()
-                          ? "bg-[#FFF1ED] hover:bg-[#FFF1ED]/80"
-                          : "hover:bg-gray-50"
-                      }`}
+                      className={`border-b border-gray-200 last:border-b-0 cursor-pointer transition-colors ${row.getIsSelected()
+                        ? "bg-[#FFF1ED] hover:bg-[#FFF1ED]/80"
+                        : "hover:bg-gray-50"
+                        }`}
                     >
                       {row.getVisibleCells().map((cell) => (
                         <td

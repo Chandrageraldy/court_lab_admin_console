@@ -133,7 +133,7 @@ const Receipt = ({
       <Page size={[226, 600]} style={styles.page}>
         {/* Store Header */}
         <View style={styles.center}>
-          <PDFImage src={courtlabGrayscale} style={styles.logo} />
+          {/* <PDFImage src={courtlabGrayscale} style={styles.logo} /> */}
 
           <Text style={styles.storeInfo}>Jl. Example Street No. 123</Text>
 
