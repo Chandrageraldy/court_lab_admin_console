@@ -156,7 +156,29 @@ const Transactions = () => {
     }
   };
 
-  const handleBulkVoid = () => { };
+  const handleBulkVoid = async () => {
+    const selectedRows = table.getSelectedRowModel().rows;
+    const toVoid = selectedRows.filter((row) => !row.original.is_voided);
+
+    if (toVoid.length === 0) return;
+
+    setIsVoiding(true);
+    try {
+      await Promise.all(
+        toVoid.map((row) =>
+          transactionService.voidTransaction(row.original.transaction_id),
+        ),
+      );
+      table.resetRowSelection();
+      fetchTransactions();
+      showSnackbar(`${toVoid.length} transaction(s) voided successfully.`, "success");
+    } catch (error) {
+      console.error("Error bulk voiding transactions:", error);
+      showSnackbar("Unable to void some transactions. Please try again.", "error");
+    } finally {
+      setIsVoiding(false);
+    }
+  };
 
   // ===== Date Filtered Transactions =====
   const dateFilteredTransactions = React.useMemo(() => {
@@ -408,11 +430,13 @@ const Transactions = () => {
             <DefaultButton
               variant="danger"
               handleClick={handleBulkVoid}
-              disabled={table
-                .getSelectedRowModel()
-                .rows.some((row) => row.original.is_voided)}
+              disabled={isVoiding || table.getSelectedRowModel().rows.some((row) => row.original.is_voided)}
             >
-              <Ban className="w-4 h-4" />
+              {isVoiding ? (
+                <div className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white animate-spin" />
+              ) : (
+                <Ban className="w-4 h-4" />
+              )}
               Void
             </DefaultButton>
 
