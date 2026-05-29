@@ -7,6 +7,8 @@ import {
   DialogTitle,
 } from "../../components/ui/DefaultDialog";
 import Badge from "../../components/ui/Badge";
+import DefaultButton from "../../components/ui/DefaultButton";
+import { Printer } from "lucide-react";
 
 interface TransactionItem {
   transaction_item_id: number;
@@ -24,6 +26,7 @@ interface TransactionDetailDialogProps {
   transaction: Transaction | null;
   items: TransactionItem[];
   isLoading?: boolean;
+  onPrint?: (transaction: Transaction) => void;
 }
 
 const TransactionDetailDialog = ({
@@ -32,6 +35,7 @@ const TransactionDetailDialog = ({
   transaction,
   items,
   isLoading = false,
+  onPrint,
 }: TransactionDetailDialogProps) => {
   if (!transaction) return null;
 
@@ -177,13 +181,18 @@ const TransactionDetailDialog = ({
 
               {/* Footer Total */}
               <div className="border-t border-gray-200 bg-[#FFF7F5] p-3 flex items-center justify-between">
-                <span className="text-xs font-semibold text-gray-700">
-                  Total Amount
-                </span>
-
-                <span className="text-xs font-bold text-[#F14B27]">
-                  {formatIDR(transaction.total_amount)}
-                </span>
+                <span className="text-xs font-semibold text-gray-700">Total Amount</span>
+                <div className="flex items-center gap-3">
+                  <span className="text-xs font-bold text-[#F14B27]">
+                    {formatIDR(transaction.total_amount)}
+                  </span>
+                  {onPrint && (
+                    <DefaultButton variant="primary" handleClick={() => onPrint(transaction)}>
+                      <Printer className="w-3.5 h-3.5" />
+                      Print
+                    </DefaultButton>
+                  )}
+                </div>
               </div>
             </div>
           </div>

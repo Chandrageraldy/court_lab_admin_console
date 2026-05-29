@@ -24,11 +24,18 @@ const AdjustStockDialog = ({
   onOpenChange,
   onConfirm,
 }: AdjustStockDialogProps) => {
+  // ===== Loading States =====
+  const [submitting, setSubmitting] = useState<"add" | "remove" | null>(null);
+
+  // ===== Data States =====
   const [quantity, setQuantity] = useState("");
 
   // ===== Lifecycle =====
   useEffect(() => {
-    if (!open) setQuantity("");
+    if (!open) {
+      setQuantity("");
+      setSubmitting(null);
+    }
   }, [open]);
 
   if (!product) return null;
@@ -46,6 +53,15 @@ const AdjustStockDialog = ({
   const handleClose = () => {
     setQuantity("");
     onOpenChange(false);
+  };
+
+  const handleConfirm = async (product: Product, newQuantity: number, action: "add" | "remove") => {
+    setSubmitting(action);
+    try {
+      await onConfirm(product, newQuantity);
+    } finally {
+      setSubmitting(null);
+    }
   };
 
   return (
@@ -102,17 +118,19 @@ const AdjustStockDialog = ({
         <div className="grid grid-cols-2 gap-3">
           <DefaultButton
             variant="danger"
-            handleClick={() => onConfirm(product, afterRemove)}
+            handleClick={() => handleConfirm(product, afterRemove, "remove")}
+            disabled={submitting !== null}
           >
             <PackageMinus className="w-4 h-4" />
-            Remove Stock
+            {submitting === "remove" ? "Removing..." : "Remove Stock"}
           </DefaultButton>
           <DefaultButton
             variant="success"
-            handleClick={() => onConfirm(product, afterAdd)}
+            handleClick={() => handleConfirm(product, afterAdd, "add")}
+            disabled={submitting !== null}
           >
             <PackagePlus className="w-4 h-4" />
-            Add Stock
+            {submitting === "add" ? "Adding..." : "Add Stock"}
           </DefaultButton>
         </div>
 

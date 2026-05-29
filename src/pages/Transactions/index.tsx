@@ -164,7 +164,7 @@ const Transactions = () => {
       if (!startDate && !endDate) return true;
 
       const date = new Date(t.created_at);
-      const start = startDate ? new Date(startDate) : null;
+      const start = startDate ? new Date(startDate + "T00:00:00") : null;
       const end = endDate ? new Date(endDate + "T23:59:59") : null;
 
       if (start && date < start) return false;
@@ -432,6 +432,7 @@ const Transactions = () => {
         transaction={selectedTransaction}
         items={transactionItems}
         isLoading={isLoadingItems}
+        onPrint={handlePrint}
       />
 
       {/* Void Confirm Dialog */}
